@@ -1,18 +1,44 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Search, ShieldAlert, Zap, Clock, TrendingUp, TrendingDown, Target, AlertTriangle } from 'lucide-react';
+import { Search, ShieldAlert, Zap, Clock, TrendingUp, TrendingDown, Target, AlertTriangle, BarChart3, CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Mock Data for "Today's Signals"
+// Mock Data for "Today's Signals" - FINANCIALLY CORRECT LOGIC ENFORCED
+// BUY: Target > Entry > SL
+// SELL: Target < Entry < SL
 const MOCK_SIGNALS = [
-    { id: '1', instrument: 'NIFTY', symbol: 'NIFTY 25JAN 21500 CE', direction: 'BUY', entry: '142.20', sl: '125.00', t1: '160.00', t2: '185.00', t3: '210.00', confidence: 92, timestamp: '09:25 IST', status: 'active' },
-    { id: '2', instrument: 'BANKNIFTY', symbol: 'BANKNIFTY 25JAN 46000 PE', direction: 'SELL', entry: '320.50', sl: '360.00', t1: '280.00', t2: '240.00', t3: '200.00', confidence: 88, timestamp: '09:45 IST', status: 'target-hit' },
-    { id: '3', instrument: 'NIFTY', symbol: 'NIFTY 25JAN 21400 PE', direction: 'SELL', entry: '85.50', sl: '105.00', t1: '65.00', t2: '45.00', t3: '20.00', confidence: 75, timestamp: '10:15 IST', status: 'sl-hit' },
-    { id: '4', instrument: 'SENSEX', symbol: 'SENSEX 25JAN 72000 CE', direction: 'BUY', entry: '450.00', sl: '410.00', t1: '490.00', t2: '550.00', t3: '620.00', confidence: 95, timestamp: '11:30 IST', status: 'active' },
-    { id: '5', instrument: 'BANKNIFTY', symbol: 'BANKNIFTY 25JAN 46200 CE', direction: 'BUY', entry: '210.00', sl: '180.00', t1: '250.00', t2: '300.00', t3: '380.00', confidence: 82, timestamp: '12:10 IST', status: 'active' },
-    { id: '6', instrument: 'SENSEX', symbol: 'SENSEX 25JAN 71500 PE', direction: 'SELL', entry: '310.00', sl: '350.00', t1: '270.00', t2: '220.00', t3: '150.00', confidence: 78, timestamp: '13:45 IST', status: 'active' },
+    {
+        id: '1', instrument: 'NIFTY', symbol: 'NIFTY 25JAN 21500 CE', direction: 'BUY',
+        entry: '142.20', sl: '125.00', t1: '160.00', t2: '185.00', t3: '210.00',
+        confidence: 92, timestamp: '09:25 IST', status: 'Target 1 Hit'
+    },
+    {
+        id: '2', instrument: 'BANKNIFTY', symbol: 'BANKNIFTY 25JAN 46000 PE', direction: 'SELL',
+        entry: '320.50', sl: '360.00', t1: '280.00', t2: '240.00', t3: '200.00',
+        confidence: 88, timestamp: '09:45 IST', status: 'Target 2 Hit'
+    },
+    {
+        id: '3', instrument: 'NIFTY', symbol: 'NIFTY 25JAN 21400 PE', direction: 'SELL',
+        entry: '85.50', sl: '105.00', t1: '65.00', t2: '45.00', t3: '20.00',
+        confidence: 75, timestamp: '10:15 IST', status: 'Stop Loss Hit'
+    },
+    {
+        id: '4', instrument: 'SENSEX', symbol: 'SENSEX 25JAN 72000 CE', direction: 'BUY',
+        entry: '450.00', sl: '410.00', t1: '490.00', t2: '550.00', t3: '620.00',
+        confidence: 95, timestamp: '11:30 IST', status: 'Active'
+    },
+    {
+        id: '5', instrument: 'BANKNIFTY', symbol: 'BANKNIFTY 25JAN 46200 CE', direction: 'BUY',
+        entry: '210.00', sl: '180.00', t1: '250.00', t2: '300.00', t3: '380.00',
+        confidence: 82, timestamp: '12:10 IST', status: 'Active'
+    },
+    {
+        id: '6', instrument: 'SENSEX', symbol: 'SENSEX 25JAN 71500 PE', direction: 'SELL',
+        entry: '310.00', sl: '350.00', t1: '270.00', t2: '220.00', t3: '150.00',
+        confidence: 78, timestamp: '13:45 IST', status: 'Active'
+    }
 ];
 
 type InstrumentType = 'NIFTY' | 'BANKNIFTY' | 'SENSEX';
@@ -31,8 +57,60 @@ export function SignalsTerminal() {
         return filteredSignals.filter(s => s.instrument === inst);
     };
 
+    // Performance Metrics Calculation
+    const stats = useMemo(() => {
+        const total = MOCK_SIGNALS.length;
+        const t1 = MOCK_SIGNALS.filter(s => s.status.includes('Target')).length;
+        const sl = MOCK_SIGNALS.filter(s => s.status.includes('Stop Loss')).length;
+        // Success rate: (Targets Hit) / (Targets + SLs) * 100 (excluding active)
+        const closed = t1 + sl;
+        const successRate = closed > 0 ? Math.round((t1 / closed) * 100) : 0;
+
+        return { total, t1, sl, successRate };
+    }, []);
+
     return (
         <div className="flex flex-col gap-6 h-[calc(100vh-140px)]">
+
+            {/* Daily Performance Summary Widget */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#050505] border border-white/10 rounded-xl p-4 shadow-xl">
+                <div className="flex items-center gap-3 md:border-r border-white/5 pr-4">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <BarChart3 className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Signals</p>
+                        <p className="text-xl font-mono text-white font-bold">{stats.total}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 md:border-r border-white/5 pr-4">
+                    <div className="p-2 bg-emerald-500/10 rounded-lg">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Target Hit</p>
+                        <p className="text-xl font-mono text-emerald-500 font-bold">{stats.t1}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 md:border-r border-white/5 pr-4">
+                    <div className="p-2 bg-rose-500/10 rounded-lg">
+                        <XCircle className="w-5 h-5 text-rose-500" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">SL Hit</p>
+                        <p className="text-xl font-mono text-rose-500 font-bold">{stats.sl}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Success Rate</p>
+                        <p className="text-xl font-mono text-blue-500 font-bold">{stats.successRate}%</p>
+                    </div>
+                </div>
+            </div>
 
             {/* Disclaimer Banner */}
             <div className="bg-amber-950/30 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3">
@@ -100,6 +178,9 @@ export function SignalsTerminal() {
 
 function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
     const isBuy = signal.direction === 'BUY';
+    const isLoss = signal.status.includes('Stop Loss');
+    const isTarget = signal.status.includes('Target');
+    const isActive = signal.status === 'Active';
 
     return (
         <div className={cn(
@@ -163,13 +244,14 @@ function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
                 </div>
             </div>
 
-            {/* Status Footer */}
-            {signal.status !== 'active' && (
+            {/* Explicit Outcome Status */}
+            {!isActive && (
                 <div className={cn(
-                    "mt-3 text-[9px] font-black uppercase tracking-widest text-center py-1 rounded border",
-                    signal.status === 'target-hit' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"
+                    "mt-3 flex items-center justify-center gap-2 py-1.5 rounded border text-[10px] font-black uppercase tracking-widest",
+                    isTarget ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"
                 )}>
-                    {signal.status.replace('-', ' ')}
+                    {isTarget ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                    {signal.status}
                 </div>
             )}
         </div>

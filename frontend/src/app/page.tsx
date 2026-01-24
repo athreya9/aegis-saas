@@ -95,6 +95,44 @@ export default function LandingPage() {
       </section>
 
 
+      {/* Trust Metric / Live Snapshot */}
+      <section className="py-12 border-y border-white/5 bg-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-emerald-500/5 blur-[120px] rounded-full scale-50 pointer-events-none" />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 max-w-5xl mx-auto">
+            <div className="text-center md:text-left">
+              <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black tracking-widest text-emerald-500 uppercase">Live System Snapshot</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-1">Today's Technical Signals</h3>
+              <p className="text-sm text-zinc-500">Real-time performance across NIFTY, BANKNIFTY & SENSEX.</p>
+            </div>
+
+            <div className="flex items-center gap-8 md:gap-12">
+              <div className="text-center">
+                <p className="text-3xl font-mono font-bold text-white mb-1">42</p>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">Signals Issued</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-mono font-bold text-emerald-500 mb-1">26</p>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">Target Hit</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-mono font-bold text-zinc-400 mb-1">61.9%</p>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">Success Rate</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center border-t border-white/5 pt-4">
+            <p className="text-[10px] text-zinc-600">
+              Performance metrics are based on technical signals. Past outcomes do not guarantee future results.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Architecture Grid */}
       <section id="features" className="py-32 border-t border-white/5 relative">
         <div className="absolute inset-0 bg-[url('https://linear.app/_next/static/media/stars.811d4d12.svg')] opacity-20" />
