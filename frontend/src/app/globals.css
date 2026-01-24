@@ -137,3 +137,33 @@
   opacity: 0.1;
   mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
 }
+
+@layer utilities {
+  .animate-ken-burns {
+    animation: ken-burns 20s ease-out infinite alternate;
+  }
+
+  .animate-scan {
+    animation: scan 4s linear infinite;
+  }
+}
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform: scale(1.1) translate(-2%, -2%);
+  }
+}
+
+@keyframes scan {
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
