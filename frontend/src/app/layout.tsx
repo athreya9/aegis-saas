@@ -13,10 +13,24 @@ const geistMono = Geist_Mono({
 });
 
 import { AuthProvider } from "@/context/auth-context";
+import { NotificationProvider } from "@/context/notification-context";
 
 export const metadata: Metadata = {
-  title: "Aegis | Professional Trading Automation",
-  description: "Advanced algorithmic trading for professional traders and institutions.",
+  title: "Aegis | Institutional Execution",
+  description: "Variance-Weighted Algorithmic Runtime",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false, // Prevent zoom on mobile for app-like feel
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Aegis",
+  },
   icons: {
     icon: '/logo-processed.png',
   }
@@ -36,7 +50,9 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ClientLayout>
-            {children}
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
           </ClientLayout>
         </AuthProvider>
       </body>

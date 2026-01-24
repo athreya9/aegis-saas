@@ -26,8 +26,8 @@ export function Sidebar() {
     const pathname = usePathname()
 
     return (
-        <div className="hidden md:flex w-[240px] vercel-sidebar flex-col h-screen overflow-hidden">
-            <div className="h-16 flex items-center px-6 gap-3">
+        <aside className="w-64 border-r border-white/5 bg-[#0A0A0A] flex-col hidden md:flex h-screen sticky top-0">
+            <div className="p-6 border-b border-white/5 flex items-center gap-3">
                 <div className="w-6 h-6 bg-white rounded flex items-center justify-center shrink-0">
                     <span className="text-black font-black text-xs">A</span>
                 </div>
@@ -66,6 +66,6 @@ export function Sidebar() {
                     </div>
                 </div>
             </div>
-        </div>
+        </aside>
     )
 }

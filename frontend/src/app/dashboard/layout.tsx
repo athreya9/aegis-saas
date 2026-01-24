@@ -1,7 +1,8 @@
 "use client";
 
 import { Sidebar } from "@/components/layout/sidebar";
-import { DashboardHeader } from "@/components/dashboard/header";
+import { DashboardHeader as Header } from "@/components/dashboard/header";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -16,27 +17,19 @@ const AegisNavigatorDynamic = dynamic(
 export default function DashboardLayout({
     children,
 }: {
-    children: React.ReactNode;
+    children: React.ReactNode
 }) {
-    const { user, isLoading } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isLoading && !user) {
-            router.push("/login"); // Implicit protection
-        }
-    }, [user, isLoading, router]);
-
     return (
-        <div className="flex min-h-screen bg-black text-white">
+        <div className="flex h-screen bg-[#0A0A0A]">
             <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0">
-                <DashboardHeader />
-                <main className="flex-1">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                <Header />
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6">
                     {children}
                 </main>
+                <MobileNav />
+                <AegisNavigatorDynamic />
             </div>
-            <AegisNavigatorDynamic />
         </div>
-    );
+    )
 }
