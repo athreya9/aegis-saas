@@ -103,7 +103,7 @@ export default function LandingPage() {
             <div className="text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black tracking-widest text-emerald-500 uppercase">Live System Snapshot</span>
+                <span className="text-[10px] font-black tracking-widest text-emerald-500 uppercase">Live System Snapshot (Today)</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-1">Today's Technical Signals</h3>
               <p className="text-sm text-zinc-500">Real-time performance across NIFTY, BANKNIFTY & SENSEX.</p>

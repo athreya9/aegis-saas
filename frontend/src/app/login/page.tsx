@@ -39,6 +39,16 @@ export default function LoginPage() {
                 <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[100px]" />
             </div>
 
+            {/* Back to Home Navigation */}
+            <div className="absolute top-6 left-6 z-20">
+                <Link href="/" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors group">
+                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all">
+                        <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-white rotate-180 transition-colors" />
+                    </div>
+                    Back to Main
+                </Link>
+            </div>
+
             <RiskDisclosureModal
                 isOpen={showRiskModal}
                 onAccept={handleRiskAccept}
