@@ -1,0 +1,69 @@
+[
+    {
+        "category": "Platform Usage",
+        "questions": [
+            {
+                "id": "what-is-aegis",
+                "question": "What does Aegis do?",
+                "answer": "Aegis is an execution environment for professional traders. It automates your strategies with strict risk enforcement, ensuring disciplined execution without emotional interference."
+            },
+            {
+                "id": "managed-vs-self-serve",
+                "question": "Difference between Self-Serve and Managed?",
+                "answer": "Self-Serve allows you to configure and run your own strategies using our infrastructure. Managed plans provide institutional-grade strategies maintained by our quant team, executed on your behalf."
+            },
+            {
+                "id": "dashboard-sections",
+                "question": "Explain the Dashboard sections",
+                "answer": "The Dashboard is divided into: \n- **P&L**: Real-time profit and loss tracking.\n- **Margin**: Available capital and utilization.\n- **Exposure**: Current market risk.\n- **System Health**: Connection status and latency metrics."
+            }
+        ]
+    },
+    {
+        "category": "Broker Integration",
+        "questions": [
+            {
+                "id": "api-setup",
+                "question": "How do I connect my broker?",
+                "answer": "You need to generate API keys from your broker's developer portal. These typically include an API Key, API Secret, and a TOTP secret for automated login. Navigate to Settings > Broker Integration to enter these details."
+            },
+            {
+                "id": "re-auth",
+                "question": "Do I need to re-authenticate daily?",
+                "answer": "Yes, most Indian brokers require daily login (TOTP) for security. Aegis attempts to automate this, but you may need to manually approve the session in the morning if 2FA changes."
+            }
+        ]
+    },
+    {
+        "category": "Official Broker Docs",
+        "questions": [
+            {
+                "id": "zerodha-docs",
+                "question": "Zerodha Kite Connect Docs",
+                "answer": "Official documentation for Kite Connect API setup.",
+                "link": {
+                    "text": "Kite Connect Documentation",
+                    "url": "https://kite.trade/docs/connect/v3/"
+                }
+            },
+            {
+                "id": "angel-docs",
+                "question": "Angel One SmartAPI Docs",
+                "answer": "Official documentation for Angel One SmartAPI.",
+                "link": {
+                    "text": "SmartAPI Documentation",
+                    "url": "https://smartapi.angelbroking.com/docs"
+                }
+            },
+            {
+                "id": "upstox-docs",
+                "question": "Upstox API Docs",
+                "answer": "Official documentation for Upstox Uplink API.",
+                "link": {
+                    "text": "Upstox API Documentation",
+                    "url": "https://upstox.com/developer/api-documentation/"
+                }
+            }
+        ]
+    }
+]
