@@ -1,22 +1,52 @@
 "use client"
 
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-const positions = [
-    { symbol: "NIFTY26120CE", qty: 50, avg: 142.20, ltp: 168.45, pnl: 1312, side: "BUY" },
-    { symbol: "BANKNIFTY48000PE", qty: 15, avg: 312.45, ltp: 298.10, pnl: -215, side: "SELL" },
-    { symbol: "RELIANCE24JANFUT", qty: 250, avg: 2840.00, ltp: 2855.20, pnl: 3800, side: "BUY" },
-]
+const positions = {
+    NIFTY: [
+        { symbol: "NIFTY 21500 CE", qty: 50, avg: 142.20, ltp: 168.45, pnl: 1312, side: "BUY" },
+        { symbol: "NIFTY 21450 PE", qty: 50, avg: 88.10, ltp: 42.05, pnl: -2302, side: "BUY" },
+    ],
+    BANKNIFTY: [
+        { symbol: "BANKNIFTY 48000 PE", qty: 15, avg: 312.45, ltp: 298.10, pnl: -215, side: "SELL" },
+    ],
+    SENSEX: [
+        { symbol: "SENSEX 72000 CE", qty: 10, avg: 640.00, ltp: 710.20, pnl: 702, side: "BUY" },
+    ]
+}
+
+type Instrument = keyof typeof positions;
 
 export function OpenPositionsTable() {
+    const [activeTab, setActiveTab] = useState<Instrument>("NIFTY");
+
     return (
         <div className="vercel-card overflow-hidden">
             <div className="px-6 py-4 border-b border-[#111] flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white tracking-tight">Open Positions</h3>
+                <div className="flex items-center gap-6">
+                    <h3 className="text-sm font-bold text-white tracking-tight">Open Positions</h3>
+                    <div className="flex gap-2">
+                        {(["NIFTY", "BANKNIFTY", "SENSEX"] as Instrument[]).map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={cn(
+                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                                    activeTab === tab
+                                        ? "bg-white text-black"
+                                        : "bg-[#111] text-zinc-500 hover:text-white"
+                                )}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 <Badge variant="outline" className="border-[#222] text-[10px] font-bold">LIVE FEED</Badge>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto min-h-[200px]">
                 <table className="w-full text-left">
                     <thead>
                         <tr className="border-b border-[#111] bg-white/[0.01]">
@@ -28,7 +58,7 @@ export function OpenPositionsTable() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#111]">
-                        {positions.map((pos, i) => (
+                        {positions[activeTab].map((pos, i) => (
                             <tr key={i} className="group hover:bg-white/[0.01] transition-colors">
                                 <td className="px-6 py-4">
                                     <p className="text-[13px] font-bold text-white">{pos.symbol}</p>
@@ -51,6 +81,13 @@ export function OpenPositionsTable() {
                                 </td>
                             </tr>
                         ))}
+                        {positions[activeTab].length === 0 && (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-8 text-center text-zinc-500 text-xs uppercase tracking-widest">
+                                    No open positions in {activeTab}
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>
