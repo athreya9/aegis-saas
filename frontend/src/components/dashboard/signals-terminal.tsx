@@ -1,73 +1,100 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, ShieldAlert, Zap, Clock, TrendingUp, TrendingDown, Target, AlertTriangle, BarChart3, CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Mock Data for "Today's Signals" - FINANCIALLY CORRECT LOGIC ENFORCED
-// BUY: Target > Entry > SL
-// SELL: Target < Entry < SL
-const MOCK_SIGNALS = [
-    {
-        id: '1', instrument: 'NIFTY', symbol: 'NIFTY 25JAN 21500 CE', direction: 'BUY',
-        entry: '142.20', sl: '125.00', t1: '160.00', t2: '185.00', t3: '210.00',
-        confidence: 92, timestamp: '09:25 IST', status: 'Target 1 Hit'
-    },
-    {
-        id: '2', instrument: 'BANKNIFTY', symbol: 'BANKNIFTY 25JAN 46000 PE', direction: 'SELL',
-        entry: '320.50', sl: '360.00', t1: '280.00', t2: '240.00', t3: '200.00',
-        confidence: 88, timestamp: '09:45 IST', status: 'Target 2 Hit'
-    },
-    {
-        id: '3', instrument: 'NIFTY', symbol: 'NIFTY 25JAN 21400 PE', direction: 'SELL',
-        entry: '85.50', sl: '105.00', t1: '65.00', t2: '45.00', t3: '20.00',
-        confidence: 75, timestamp: '10:15 IST', status: 'Stop Loss Hit'
-    },
-    {
-        id: '4', instrument: 'SENSEX', symbol: 'SENSEX 25JAN 72000 CE', direction: 'BUY',
-        entry: '450.00', sl: '410.00', t1: '490.00', t2: '550.00', t3: '620.00',
-        confidence: 95, timestamp: '11:30 IST', status: 'Active'
-    },
-    {
-        id: '5', instrument: 'BANKNIFTY', symbol: 'BANKNIFTY 25JAN 46200 CE', direction: 'BUY',
-        entry: '210.00', sl: '180.00', t1: '250.00', t2: '300.00', t3: '380.00',
-        confidence: 82, timestamp: '12:10 IST', status: 'Active'
-    },
-    {
-        id: '6', instrument: 'SENSEX', symbol: 'SENSEX 25JAN 71500 PE', direction: 'SELL',
-        entry: '310.00', sl: '350.00', t1: '270.00', t2: '220.00', t3: '150.00',
-        confidence: 78, timestamp: '13:45 IST', status: 'Active'
-    }
-];
+// Mock Data Removed - Fetched from Backend (Port 4100)
+// Type definition matches Backend Contract
+interface Signal {
+    signal_id: string;
+    instrument: 'NIFTY' | 'BANKNIFTY' | 'SENSEX';
+    symbol: string;
+    direction: 'BUY' | 'SELL';
+    entry_price: number;
+    stop_loss: number;
+    targets: { t1: number, t2: number, t3: number };
+    confidence_pct: number;
+    outcome_status: string;
+    timestamp_ist: string;
+    meta?: any;
+}
 
 type InstrumentType = 'NIFTY' | 'BANKNIFTY' | 'SENSEX';
 
 export function SignalsTerminal() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [signals, setSignals] = useState<Signal[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch Signals from Backend
+    useEffect(() => {
+        const fetchSignals = async () => {
+            try {
+                const res = await fetch('http://91.98.226.5:4100/api/v1/signals/today');
+                if (!res.ok) throw new Error('Failed to fetch signals');
+                const data = await res.json();
+
+                // Map API response to Component State 
+                // Note: API returns snake_case numbers, frontend uses them directly now
+                // Transforming flattened structure if needed, but current mock matches structure
+                setSignals(data.data as Signal[]);
+                setLoading(false);
+            } catch (err) {
+                console.error("Signal Fetch Error:", err);
+                setError("Unable to connect to Signal Intelligence Feed.");
+                setLoading(false);
+            }
+        };
+
+        fetchSignals();
+        // Poll every 30 seconds
+        const interval = setInterval(fetchSignals, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     const filteredSignals = useMemo(() => {
-        return MOCK_SIGNALS.filter(signal =>
+        return signals.filter(signal =>
             signal.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
             signal.instrument.toLowerCase().includes(searchQuery.toLowerCase())
-        ).sort((a, b) => b.timestamp.localeCompare(a.timestamp)); // Newest first
-    }, [searchQuery]);
+        ).sort((a, b) => b.timestamp_ist.localeCompare(a.timestamp_ist)); // Newest first
+    }, [searchQuery, signals]);
+
+    // Calculate Stats for Widget
+    const stats = useMemo(() => {
+        const total = signals.length;
+        const t1 = signals.filter(s => s.outcome_status.includes('Target')).length;
+        const sl = signals.filter(s => s.outcome_status.includes('Stop Loss')).length;
+        const closed = t1 + sl;
+        const successRate = closed > 0 ? Math.round((t1 / closed) * 100) : 0;
+        return { total, t1, sl, successRate };
+    }, [signals]);
 
     const getSignalsByInstrument = (inst: InstrumentType) => {
         return filteredSignals.filter(s => s.instrument === inst);
     };
 
-    // Performance Metrics Calculation
-    const stats = useMemo(() => {
-        const total = MOCK_SIGNALS.length;
-        const t1 = MOCK_SIGNALS.filter(s => s.status.includes('Target')).length;
-        const sl = MOCK_SIGNALS.filter(s => s.status.includes('Stop Loss')).length;
-        // Success rate: (Targets Hit) / (Targets + SLs) * 100 (excluding active)
-        const closed = t1 + sl;
-        const successRate = closed > 0 ? Math.round((t1 / closed) * 100) : 0;
+    if (loading) {
+        return (
+            <div className="flex h-[400px] items-center justify-center text-zinc-500 font-mono text-xs uppercase tracking-widest animate-pulse">
+                Initializing Secure Feed...
+            </div>
+        );
+    }
 
-        return { total, t1, sl, successRate };
-    }, []);
+    if (error) {
+        return (
+            <div className="flex h-[400px] flex-col gap-4 items-center justify-center text-zinc-500">
+                <ShieldAlert className="w-8 h-8 text-rose-900/50" />
+                <div className="text-center">
+                    <p className="text-xs font-bold text-rose-500 uppercase tracking-widest">Connection Lost</p>
+                    <p className="text-[10px] text-zinc-600 mt-1">{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-6 h-[calc(100vh-140px)]">
@@ -160,7 +187,7 @@ export function SignalsTerminal() {
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
                             {getSignalsByInstrument(inst).length > 0 ? (
                                 getSignalsByInstrument(inst).map((signal, idx) => (
-                                    <SignalCard key={signal.id} signal={signal} isLatest={idx === 0} />
+                                    <SignalCard key={signal.signal_id} signal={signal} isLatest={idx === 0} />
                                 ))
                             ) : (
                                 <div className="h-32 flex flex-col items-center justify-center text-zinc-700 gap-2">
@@ -176,11 +203,11 @@ export function SignalsTerminal() {
     );
 }
 
-function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
+function SignalCard({ signal, isLatest }: { signal: Signal, isLatest: boolean }) {
     const isBuy = signal.direction === 'BUY';
-    const isLoss = signal.status.includes('Stop Loss');
-    const isTarget = signal.status.includes('Target');
-    const isActive = signal.status === 'Active';
+    const isLoss = signal.outcome_status.includes('Stop Loss');
+    const isTarget = signal.outcome_status.includes('Target');
+    const isActive = signal.outcome_status === 'OPEN'; // Matches Blueprint outcome_status
 
     return (
         <div className={cn(
@@ -195,10 +222,10 @@ function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
             <div className="flex items-center justify-between mb-3 border-b border-white/[0.03] pb-2">
                 <div className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-zinc-600" />
-                    <span className="text-[10px] font-mono text-zinc-500">{signal.timestamp}</span>
+                    <span className="text-[10px] font-mono text-zinc-500">{signal.timestamp_ist}</span>
                 </div>
                 <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-mono border-zinc-800 text-zinc-500">
-                    {signal.confidence}% CONF
+                    {signal.confidence_pct}% CONF
                 </Badge>
             </div>
 
@@ -218,7 +245,7 @@ function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
                 </div>
                 <div className="text-right">
                     <span className="text-[9px] text-zinc-600 block uppercase tracking-wider mb-0.5">Entry</span>
-                    <span className="text-sm font-mono text-white font-medium">{signal.entry}</span>
+                    <span className="text-sm font-mono text-white font-medium">{signal.entry_price}</span>
                 </div>
             </div>
 
@@ -226,11 +253,11 @@ function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
             <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="p-2 rounded bg-rose-500/[0.03] border border-rose-500/10">
                     <span className="text-[8px] text-rose-500/70 block uppercase tracking-widest mb-1">Stop Loss</span>
-                    <span className="text-xs font-mono text-rose-400">{signal.sl}</span>
+                    <span className="text-xs font-mono text-rose-400">{signal.stop_loss}</span>
                 </div>
                 <div className="p-2 rounded bg-emerald-500/[0.03] border border-emerald-500/10">
                     <span className="text-[8px] text-emerald-500/70 block uppercase tracking-widest mb-1">Target 1</span>
-                    <span className="text-xs font-mono text-emerald-400">{signal.t1}</span>
+                    <span className="text-xs font-mono text-emerald-400">{signal.targets.t1}</span>
                 </div>
             </div>
 
@@ -238,9 +265,9 @@ function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
             <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 bg-white/[0.02] p-1.5 rounded border border-white/[0.02]">
                 <Target className="w-3 h-3 text-zinc-700" />
                 <div className="flex gap-3">
-                    <span>T2: <span className="text-zinc-400">{signal.t2}</span></span>
+                    <span>T2: <span className="text-zinc-400">{signal.targets.t2}</span></span>
                     <span className="text-zinc-700">•</span>
-                    <span>T3: <span className="text-zinc-400">{signal.t3}</span></span>
+                    <span>T3: <span className="text-zinc-400">{signal.targets.t3}</span></span>
                 </div>
             </div>
 
@@ -251,7 +278,7 @@ function SignalCard({ signal, isLatest }: { signal: any, isLatest: boolean }) {
                     isTarget ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"
                 )}>
                     {isTarget ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                    {signal.status}
+                    {signal.outcome_status}
                 </div>
             )}
         </div>

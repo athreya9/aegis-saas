@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { DashboardHeader as Header } from "@/components/dashboard/header";
+import { RiskBanner } from "@/components/dashboard/risk-banner";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ export default function DashboardLayout({
             <Sidebar />
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <Header />
+                <RiskBanner />
                 <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6">
                     {children}
                 </main>
