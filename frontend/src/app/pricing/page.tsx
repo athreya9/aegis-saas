@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import { CheckCircle2, Zap, Shield, ArrowRight, Laptop, Activity } from "lucide-react";
+import { CheckCircle2, Zap, Shield, Laptop, Activity } from "lucide-react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { useAuth } from "@/context/auth-context";
@@ -16,11 +16,11 @@ export default function PricingPage() {
 
             <main className="pt-32 pb-20 container mx-auto px-6">
 
-                {/* How It Works Section */}
+                {/* Workflow Section */}
                 <div className="mb-32 max-w-5xl mx-auto">
                     <div className="text-center mb-16">
                         <Badge variant="outline" className="mb-6 border-indigo-500/30 text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-widest">
-                            Workflow
+                            Activation Workflow
                         </Badge>
                         <h2 className="text-4xl font-medium tracking-tight mb-4">How Aegis Works</h2>
                         <p className="text-zinc-400 max-w-2xl mx-auto">
@@ -52,40 +52,44 @@ export default function PricingPage() {
                 {/* Pricing Plans */}
                 <div className="text-center mb-16">
                     <h1 className="text-5xl md:text-6xl font-medium tracking-tight mb-6 bg-gradient-to-br from-white to-zinc-500 bg-clip-text text-transparent">
-                        Simple, transparent pricing.
+                        Two ways to deploy.
                     </h1>
                     <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-                        No hidden fees. No profit guarantees. Just pure execution infrastructure.
+                        Simple, transparent pricing for Indian traders. No hidden fees.
                     </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
 
                     {/* PLAN 1: Aegis Core */}
-                    <Card className="vercel-card bg-[#0a0a0a] border-[#222] flex flex-col relative overflow-hidden group">
-                        <div className="absolute top-0 inset-x-0 h-1 bg-zinc-800 group-hover:bg-white transition-colors" />
+                    <Card className="vercel-card bg-[#0a0a0a] border-[#222] flex flex-col relative overflow-hidden group hover:border-[#333] transition-all">
+                        <div className="absolute top-0 inset-x-0 h-1 bg-emerald-500/50 group-hover:bg-emerald-500 transition-colors" />
                         <CardHeader className="p-8 pb-4">
-                            <h3 className="text-lg font-medium text-zinc-400 mb-2">Aegis Core</h3>
+                            <Badge variant="outline" className="w-fit mb-4 border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
+                                Self-Serve Automation
+                            </Badge>
+                            <h3 className="text-2xl font-bold text-white mb-1">Aegis Core</h3>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-4xl font-bold text-white">₹2,499</span>
                                 <span className="text-zinc-500">/month</span>
                             </div>
-                            <p className="text-sm text-zinc-500 mt-4 leading-relaxed">
-                                Self-Serve Automation. Automated trading using the Aegis risk engine. You connect your own broker APIs and retain full account control.
+                            <p className="text-sm text-zinc-400 mt-4 leading-relaxed">
+                                For disciplined traders who want full control. Automate your strategy using the Aegis risk engine.
                             </p>
                         </CardHeader>
                         <CardContent className="p-8 flex-1">
                             <ul className="space-y-4">
                                 {[
-                                    "Automated execution using Aegis rules",
+                                    "Automated execution via Aegis engine",
                                     "User-managed broker API integration",
-                                    "Real-time dashboard (P&L, margin, exposure)",
-                                    "Full transparency and monitoring",
+                                    "Pre-defined Risk Profiles (Conservative/Active)",
+                                    "Real-time P&L & Exposure Dashboard",
+                                    "Detailed System Health Monitoring",
                                     "No profit guarantees",
-                                    "No profit share"
+                                    "No profit sharing"
                                 ].map((feature) => (
                                     <li key={feature} className="flex items-start gap-3 text-sm text-zinc-300">
-                                        <CheckCircle2 className="w-5 h-5 text-zinc-500 shrink-0" />
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                                         {feature}
                                     </li>
                                 ))}
@@ -93,15 +97,15 @@ export default function PricingPage() {
                         </CardContent>
                         <CardFooter className="p-8 pt-0">
                             {user ? (
-                                <Button asChild className="w-full h-12 bg-[#111] text-white hover:bg-[#222] border border-[#333]">
-                                    <Link href="/payment?plan=core&email={user.email}">
-                                        Upgrade to Core
+                                <Button asChild className="w-full h-12 bg-white text-black hover:bg-zinc-200 font-medium">
+                                    <Link href="/payment?plan=core">
+                                        Upgrade to Aegis Core
                                     </Link>
                                 </Button>
                             ) : (
-                                <Button asChild className="w-full h-12 bg-[#111] text-white hover:bg-[#222] border border-[#333]">
+                                <Button asChild className="w-full h-12 bg-white text-black hover:bg-zinc-200 font-medium">
                                     <Link href="/signup?plan=core">
-                                        Start Aegis Core
+                                        Upgrade to Aegis Core
                                     </Link>
                                 </Button>
                             )}
@@ -109,34 +113,32 @@ export default function PricingPage() {
                     </Card>
 
                     {/* PLAN 2: Aegis Managed */}
-                    <Card className="vercel-card bg-[#0a0a0a] border-[#222] flex flex-col relative overflow-hidden group">
+                    <Card className="vercel-card bg-[#0a0a0a] border-[#222] flex flex-col relative overflow-hidden group hover:border-indigo-500/30 transition-all">
                         <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500" />
                         <CardHeader className="p-8 pb-4">
-                            <div className="flex justify-between items-start">
-                                <h3 className="text-lg font-medium text-indigo-400 mb-2">Aegis Managed</h3>
-                                <Badge variant="outline" className="border-indigo-500/30 text-indigo-400 bg-indigo-500/10">
-                                    Assisted Mode
-                                </Badge>
-                            </div>
+                            <Badge variant="outline" className="w-fit mb-4 border-indigo-500/30 text-indigo-400 bg-indigo-500/10">
+                                Assisted Mode
+                            </Badge>
+                            <h3 className="text-2xl font-bold text-white mb-1">Aegis Managed</h3>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-4xl font-bold text-white">₹4,999</span>
                                 <span className="text-zinc-500">/month</span>
                             </div>
-                            <p className="text-sm text-zinc-500 mt-4 leading-relaxed">
-                                Assisted setup and operational support for Aegis automation, with optional performance-aligned pricing.
+                            <p className="text-sm text-zinc-400 mt-4 leading-relaxed">
+                                For users who want assisted setup and ongoing operational support from our technical team.
                             </p>
                         </CardHeader>
                         <CardContent className="p-8 flex-1">
                             <ul className="space-y-4">
+                                <li className="font-medium text-white pb-2 border-b border-white/5">Includes everything in Core, plus:</li>
                                 {[
-                                    "Everything in Aegis Core",
                                     "Assisted onboarding & configuration",
-                                    "Ongoing monitoring and support",
-                                    "Priority assistance",
+                                    "Priority technical support",
+                                    "Ongoing monitoring assistance",
                                     "Profit Share: 10% on Net Profits (Capped)",
                                     "No profit → No profit share"
                                 ].map((feature) => (
-                                    <li key={feature} className="flex items-start gap-3 text-sm text-indigo-100/80">
+                                    <li key={feature} className="flex items-start gap-3 text-sm text-zinc-300">
                                         <Shield className="w-5 h-5 text-indigo-500 shrink-0" />
                                         {feature}
                                     </li>
@@ -145,15 +147,15 @@ export default function PricingPage() {
                         </CardContent>
                         <CardFooter className="p-8 pt-0">
                             {user ? (
-                                <Button asChild className="w-full h-12 bg-white text-black hover:bg-zinc-200">
-                                    <Link href="/payment?plan=managed&email={user.email}">
+                                <Button asChild className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-medium border border-indigo-500/20">
+                                    <Link href="/contact?subject=Managed%20Plan%20Inquiry">
                                         Request Managed Support
                                     </Link>
                                 </Button>
                             ) : (
-                                <Button asChild className="w-full h-12 bg-white text-black hover:bg-zinc-200">
+                                <Button asChild className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-medium border border-indigo-500/20">
                                     <Link href="/signup?plan=managed">
-                                        Apply for Managed
+                                        Request Managed Support
                                     </Link>
                                 </Button>
                             )}
@@ -163,7 +165,7 @@ export default function PricingPage() {
 
                 <div className="mt-16 text-center border-t border-white/5 pt-8 max-w-2xl mx-auto">
                     <p className="text-sm text-zinc-500 leading-relaxed">
-                        <strong>Disclosure:</strong> Aegis is an automation platform. Trading involves risk. No profits are guaranteed. All automation follows predefined rules and risk limits.
+                        <strong>Risk Disclosure:</strong> Trading in financial markets involves high risk. Aegis is an automation tool that executes commands based on your inputs and selected profiles. We do not provide investment advice. Past performance of any strategy is not indicative of future results. No profits are guaranteed.
                         <br /><br />
                         <Link href="/risk-disclosure" className="underline hover:text-white">Risk Disclosure</Link> • <Link href="/terms" className="underline hover:text-white">Terms of Service</Link>
                     </p>
