@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button"
 import { Shield, Zap, Lock, Terminal, Activity, TrendingUp, Check } from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/layout/navbar"
-import { DemoPlayer } from "@/components/landing/demo-player"
 
 export const dynamic = "force-static";
 
@@ -23,22 +22,6 @@ export default function FeaturesPage() {
                 </div>
             </section>
 
-            {/* Platform Walkthrough Section */}
-            <section className="py-24 px-6 border-b border-white/5 bg-zinc-950/20">
-                <div className="container mx-auto max-w-5xl">
-                    <div className="text-center mb-16">
-                        <h2 className="text-2xl font-bold uppercase tracking-widest text-zinc-500 mb-4">Platform Walkthrough</h2>
-                        <p className="text-zinc-400 max-w-2xl mx-auto">
-                            Observe the institutional guardrails and real-time execution monitoring in this end-to-end frontend simulation.
-                        </p>
-                    </div>
-                    <DemoPlayer
-                        videoUrl="/demo-walkthrough.webp"
-                        title="Aegis Feature Simulation"
-                        caption="Institutional Risk Enforcement • Live Terminal Demo"
-                    />
-                </div>
-            </section>
 
             {/* Core Mechanics */}
             <section className="py-24 px-6">

@@ -6,7 +6,6 @@ import { ArrowRight, ChevronRight, Zap, Target, Shield, BarChart3, Star, Command
 import Link from "next/link"
 import { Hero3D } from "@/components/landing/hero-3d"
 import { useAuth } from "@/context/auth-context"
-import { DemoPlayer } from "@/components/landing/demo-player"
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -95,19 +94,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Product Demo Section */}
-      <section className="py-24 border-y border-white/5 bg-black relative">
-        <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full scale-50 pointer-events-none" />
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-3xl mx-auto text-center mb-16 px-6">
-            <h2 className="text-3xl md:text-5xl font-medium tracking-tight mb-6 text-white uppercase tracking-tighter">See Aegis in Action</h2>
-            <p className="text-zinc-500 text-lg leading-relaxed">
-              Experience the full end-to-end institutional workflow—from discovery and onboarding to the unlocked trading dashboard.
-            </p>
-          </div>
-          <DemoPlayer videoUrl="/demo-walkthrough.webp" />
-        </div>
-      </section>
 
       {/* Architecture Grid */}
       <section id="features" className="py-32 border-t border-white/5 relative">
