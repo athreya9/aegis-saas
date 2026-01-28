@@ -1,0 +1,108 @@
+[
+    {
+        "keywords": [
+            "pricing",
+            "cost",
+            "plans",
+            "subscription",
+            "price"
+        ],
+        "response": "Our Tiers: FREE (₹0/mo) for paper-trading. PRO (₹5,000/mo) for live automation. ELITE (₹15,000/mo) for dedicated infrastructure and high-frequency limits."
+    },
+    {
+        "keywords": [
+            "risk",
+            "loss",
+            "limit",
+            "cap",
+            "drawdown"
+        ],
+        "response": "Risk controls are mandatory. You must set a Daily Loss Limit (₹) and Max Trades Per Day. If these limits are breached, the system halts execution immediately to protect capital."
+    },
+    {
+        "keywords": [
+            "broker",
+            "fyers",
+            "zerodha",
+            "connect",
+            "credentials",
+            "api"
+        ],
+        "response": "We verify broker sessions continuously. You can connect Zerodha (Kite) or Fyers via the Dashboard. Ensure your API tokens are valid; expired tokens will disable live trading."
+    },
+    {
+        "keywords": [
+            "live",
+            "real money",
+            "paper",
+            "sandbox",
+            "mode"
+        ],
+        "response": "All accounts default to Sandbox (Paper) mode. To trade with real money, you must request 'Live Access' via the broker modal and receive Admin Approval. Live mode carries financial risk."
+    },
+    {
+        "keywords": [
+            "signal",
+            "strategy",
+            "trend",
+            "algo"
+        ],
+        "response": "Strategies run server-side on our VPS. Signals are generated based on technical models (Trend Follower, Mean Reversion). You can subscribe to specific strategies in the Automation tab."
+    },
+    {
+        "keywords": [
+            "hello",
+            "hi",
+            "hey",
+            "start"
+        ],
+        "response": "Aegis System Online. I can assist with Platform Configuration, Risk Parameters, and Execution Status. How may I direct you?"
+    },
+    {
+        "keywords": [
+            "panic",
+            "kill",
+            "emergency",
+            "stop",
+            "halt"
+        ],
+        "response": "The Emergency Panic Button (Admin Only) immediately halts all kernel operations, cancels open orders, and flattens positions. This action is logged and requires manual reset."
+    },
+    {
+        "keywords": [
+            "tier",
+            "basic",
+            "pro",
+            "elite",
+            "free"
+        ],
+        "response": "User Tiers enforce strict limits: FREE (View Only), BASIC (1 Lot, Nifty Only), PRO (Unlimited, All Instruments, 1% Risk), ELITE (Custom Quotas, Priority)."
+    },
+    {
+        "keywords": [
+            "governance",
+            "rbac",
+            "security",
+            "audit"
+        ],
+        "response": "SaaS Governance ensures strict isolation. No command reaches the Execution OS without passing Authentication, RBAC Permissions, Billing Quotas, and Risk Checks."
+    },
+    {
+        "keywords": [
+            "v2",
+            "architecture",
+            "observer",
+            "executor"
+        ],
+        "response": "Aegis OS v2 employs a strict 'Observer-Executor' boundary. The SaaS layer is a read-only Observer that requests actions. The Core OS is the Executor and holds final authority to reject requests based on Safety Checks."
+    },
+    {
+        "keywords": [
+            "funds",
+            "money",
+            "deposit",
+            "withdrawal"
+        ],
+        "response": "Aegis SaaS never touches your funds. We simply route signals to your connected broker (Zerodha/Fyers). All execution happens in your own broker account."
+    }
+]

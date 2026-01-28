@@ -1,53 +1,96 @@
 import { ZerodhaPaperAdapter } from '../brokers/zerodha-paper';
-import { BrokerAdapter } from '../brokers/interface';
+import { IReadOnlyBroker } from '../brokers/read-only-interface';
 
 export type RiskProfile = 'CONSERVATIVE' | 'BALANCED' | 'ACTIVE';
 
 export class Sandbox {
     public readonly userId: string;
-    private _planType: string = 'CORE'; // Tracked in state
+    private _planType: string = 'SIGNALS';
     private _autoTradingEnabled: boolean = false;
-    private _riskProfile: RiskProfile = 'CONSERVATIVE'; // Default
+    private _riskProfile: RiskProfile = 'CONSERVATIVE';
     private _dailyStats = {
         tradesExecuted: 0,
         lossIncurred: 0,
-        riskCap: 2000 // Default Conservative Cap
+        riskCap: 2000
     };
 
-    // Broker Adapter (Paper Mode)
-    private broker: ZerodhaPaperAdapter;
+    // Current Active Broker (Read-Only)
+    private broker: IReadOnlyBroker;
 
     constructor(userId: string) {
         this.userId = userId;
-        this.broker = new ZerodhaPaperAdapter(userId);
+        // Default to Paper Adapter
+        this.broker = new ZerodhaPaperAdapter(userId) as any;
+    }
+
+    public setBrokerAdapter(adapter: IReadOnlyBroker) {
+        this.broker = adapter;
+    }
+
+    public getBrokerAdapter(): IReadOnlyBroker {
+        return this.broker;
     }
 
     public setPlanType(plan: string) {
-        this._planType = plan;
+        const upperPlan = plan.toUpperCase();
+        const validPlans = ['SIGNALS', 'AUTOMATION', 'MANAGED'];
+        if (!validPlans.includes(upperPlan)) {
+            console.error(`[Sandbox ${this.userId}] Attempted set invalid plan: ${plan}. Defaulting to SIGNALS.`);
+            this._planType = 'SIGNALS';
+            return;
+        }
+        this._planType = upperPlan;
+        console.log(`[Sandbox ${this.userId}] Plan set to ${upperPlan}`);
     }
 
-    // Broker Connection
-    public async connectBroker(authData: any): Promise<boolean> {
-        return await this.broker.connect(authData);
+    // Check Session (Read-Only)
+    public async validateBrokerSession(): Promise<boolean> {
+        const { valid } = await this.broker.checkTokenStatus();
+        return valid;
+    }
+
+    // Pre-Flight Checklist
+    public async validatePreFlight(): Promise<{ ready: boolean; checks: any[] }> {
+        const brokerValid = await this.validateBrokerSession();
+        const checks = [
+            { id: 'BROKER_CONNECT', label: 'Broker Connected', passed: this.broker.brokerName !== 'Zerodha (Paper)' || this._planType === 'SIGNALS' }, // Paper ok for Signals plan
+            { id: 'SESSION_VALID', label: 'Session Valid', passed: brokerValid },
+            { id: 'RISK_PROFILE', label: 'Risk Profile Set', passed: this._riskProfile !== undefined },
+            { id: 'DAILY_LIMIT', label: 'Daily Loss Limit', passed: this._dailyStats.riskCap > 0 },
+            { id: 'MARKET_OPEN', label: 'Market Open', passed: true } // Mocked open
+        ];
+
+        return {
+            ready: checks.every(c => c.passed),
+            checks
+        };
     }
 
     // State Management
-    public async enableAutoTrading(): Promise<boolean> {
-        // 1. Risk Check
+    public async enableAutoTrading(executionMode: string = 'SANDBOX'): Promise<boolean> {
+        // 1. Pre-Flight Check
+        const { ready } = await this.validatePreFlight();
+        if (!ready) {
+            console.log(`[Sandbox ${this.userId}] Pre-Flight Failed. Cannot enable.`);
+            return false;
+        }
+
+        // 2. Risk Check
         if (this._dailyStats.lossIncurred >= this._dailyStats.riskCap) {
             console.log(`[Sandbox ${this.userId}] Risk Limit Breach. Cannot enable.`);
             return false;
         }
 
-        // 2. Broker Session Check
-        const isSessionValid = await this.broker.validateSession();
-        if (!isSessionValid) {
-            console.log(`[Sandbox ${this.userId}] Broker Session Invalid. Cannot enable.`);
-            return false;
+        // 3. Execution Gate
+        if (executionMode === 'LIVE' && (!this.broker.brokerName.includes('Paper') || this.broker.brokerName === 'NONE')) {
+            // Real broker requires LIVE mode
+            // In Read-Only phase, we allow "Enabling" but logic remains stripped.
+            console.log(`[Sandbox ${this.userId}] LIVE EXECUTION ENABLED via ${this.broker.brokerName}`);
+        } else {
+            console.log(`[Sandbox ${this.userId}] SANDBOX EXECUTION ENABLED.`);
         }
 
         this._autoTradingEnabled = true;
-        console.log(`[Sandbox ${this.userId}] Auto-Trading ENABLED.`);
         return true;
     }
 
@@ -56,11 +99,9 @@ export class Sandbox {
         console.log(`[Sandbox ${this.userId}] Auto-Trading DISABLED.`);
     }
 
-    // For testing Kill Switch
-    public triggerKillSwitch() {
-        this.broker.forceExpireSession();
+    public panicStop(): void {
         this.disableAutoTrading();
-        console.warn(`[Sandbox ${this.userId}] KILL SWITCH TRIGGERED.`);
+        console.warn(`[Sandbox ${this.userId}] PANIC STOP TRIGGERED. HALTING ALL.`);
     }
 
     public setRiskProfile(profile: RiskProfile): void {
@@ -68,7 +109,7 @@ export class Sandbox {
             throw new Error("Cannot change Risk Profile while Auto-Trading is active.");
         }
         this._riskProfile = profile;
-        // Update Caps based on Blueprint
+        // Update Caps based on Sandbox Logic
         switch (profile) {
             case 'CONSERVATIVE': this._dailyStats.riskCap = 2000; break;
             case 'BALANCED': this._dailyStats.riskCap = 5000; break;
@@ -79,9 +120,8 @@ export class Sandbox {
 
     // Getters
     public async getStatus() {
-        // Auto-Check Session Health on Status Poll
-        const isSessionValid = await this.broker.validateSession();
-        if (!isSessionValid && this._autoTradingEnabled) {
+        const { valid, expiresAt } = await this.broker.checkTokenStatus();
+        if (!valid && this._autoTradingEnabled) {
             console.warn(`[Sandbox ${this.userId}] Session Expired during Poll. Disabling Auto-Trading.`);
             this.disableAutoTrading();
         }
@@ -91,9 +131,49 @@ export class Sandbox {
             planType: this._planType,
             autoTrading: this._autoTradingEnabled,
             riskProfile: this._riskProfile,
-            brokerConnected: isSessionValid,
-            sessionExpiresAt: isSessionValid ? this.broker.getSessionExpiry() : null,
+            brokerConnected: valid,
+            sessionExpiresAt: valid ? expiresAt : null,
             stats: { ...this._dailyStats }
         };
+    }
+    // Synchronous status for manager
+    public getStatusSync() {
+        return {
+            userId: this.userId,
+            autoTrading: this._autoTradingEnabled
+        };
+    }
+}
+
+export class SandboxManager {
+    private static sandboxes: Map<string, Sandbox> = new Map();
+
+    public static get(userId: string): Sandbox {
+        if (!this.sandboxes.has(userId)) {
+            this.sandboxes.set(userId, new Sandbox(userId));
+        }
+        return this.sandboxes.get(userId)!;
+    }
+
+    public static async forceStop(userId: string) {
+        if (this.sandboxes.has(userId)) {
+            const sandbox = this.sandboxes.get(userId)!;
+            sandbox.panicStop();
+        }
+    }
+
+    public static async stopAll() {
+        console.warn("[SandboxManager] GLOBAL KILL SWITCH TRIGGERED");
+        for (const sandbox of this.sandboxes.values()) {
+            sandbox.panicStop();
+        }
+    }
+
+    public static getActiveCount(): number {
+        let count = 0;
+        for (const sandbox of this.sandboxes.values()) {
+            if (sandbox.getStatusSync().autoTrading) count++;
+        }
+        return count;
     }
 }

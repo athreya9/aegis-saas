@@ -36,3 +36,17 @@ CREATE TABLE IF NOT EXISTS user_daily_summary (
     drawdown_max DECIMAL(10,2),
     PRIMARY KEY (user_id, date)
 );
+
+-- Broker Credentials (Encrypted)
+CREATE TABLE IF NOT EXISTS broker_credentials (
+    user_id UUID PRIMARY KEY,
+    broker_name VARCHAR(20) NOT NULL,
+    encrypted_data TEXT NOT NULL,
+    iv TEXT NOT NULL,
+    auth_tag TEXT NOT NULL,
+    is_disabled BOOLEAN DEFAULT FALSE,
+    execution_mode VARCHAR(20) DEFAULT 'SANDBOX' CHECK (execution_mode IN ('SANDBOX', 'REQUESTED', 'LIVE')),
+    mode_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_validated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -34,42 +34,42 @@ export default function DashboardPage() {
             <div className="grid gap-6 md:grid-cols-4">
                 <Card className="vercel-card bg-[#0a0a0a] border-[#222]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-zinc-400">Total Users</CardTitle>
+                        <CardTitle className="text-[12px] font-black tracking-wider text-zinc-500 uppercase">Total Users</CardTitle>
                         <Users className="h-4 w-4 text-white" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">12</div>
-                        <p className="text-xs text-zinc-500">+12% from last week</p>
+                        <div className="text-2xl font-black text-white tracking-tighter">12</div>
+                        <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-tight">+12% from last week</p>
                     </CardContent>
                 </Card>
                 <Card className="vercel-card bg-[#0a0a0a] border-[#222]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-zinc-400">Active APIs</CardTitle>
+                        <CardTitle className="text-[12px] font-black tracking-wider text-zinc-500 uppercase">Active APIs</CardTitle>
                         <CheckCircle className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">8</div>
-                        <p className="text-xs text-zinc-500">Connected & Authorized</p>
+                        <div className="text-2xl font-black text-white tracking-tighter">8</div>
+                        <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-tight">Connected & Authorized</p>
                     </CardContent>
                 </Card>
                 <Card className="vercel-card bg-[#0a0a0a] border-[#222]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-zinc-400">Recurring Rev</CardTitle>
+                        <CardTitle className="text-[12px] font-black tracking-wider text-zinc-500 uppercase">Recurring Rev</CardTitle>
                         <TrendingUp className="h-4 w-4 text-indigo-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">₹42.5k</div>
-                        <p className="text-xs text-zinc-500">Monthly Run Rate</p>
+                        <div className="text-2xl font-black text-white tracking-tighter">₹42.5k</div>
+                        <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-tight">Monthly Run Rate</p>
                     </CardContent>
                 </Card>
                 <Card className="vercel-card bg-[#0a0a0a] border-[#222]">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-zinc-400">API Health</CardTitle>
+                        <CardTitle className="text-[12px] font-black tracking-wider text-zinc-500 uppercase">API Health</CardTitle>
                         <Activity className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">99.8%</div>
-                        <p className="text-xs text-zinc-500">Broker Connectivity</p>
+                        <div className="text-2xl font-black text-white tracking-tighter">99.8%</div>
+                        <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-tight">Broker Connectivity</p>
                     </CardContent>
                 </Card>
             </div>
@@ -84,15 +84,15 @@ export default function DashboardPage() {
                             {fakeUsers.map((user, i) => (
                                 <div key={i} className="flex items-center justify-between border-b border-[#222] pb-4 last:border-0 last:pb-0">
                                     <div className="space-y-1">
-                                        <p className="text-sm font-medium text-white leading-none">{user.name}</p>
+                                        <p className="text-[13px] font-black text-white uppercase tracking-tight leading-none">{user.name}</p>
                                         <div className="flex items-center gap-2">
-                                            <p className="text-xs text-zinc-500">{user.id}</p>
+                                            <p className="text-[11px] text-zinc-500 font-mono font-bold tracking-tight">{user.id}</p>
                                             <span className="text-xs text-zinc-600">•</span>
-                                            <p className="text-xs text-zinc-400">{user.broker}</p>
+                                            <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-tight">{user.broker}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className={`text-xs px-2 py-0.5 rounded font-medium mb-1 inline-block ${user.plan.includes("Managed") ? "bg-indigo-500/10 text-indigo-400" : "bg-white/5 text-zinc-400"
+                                        <div className={`text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider mb-1 inline-block ${user.plan.includes("Managed") ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" : "bg-white/5 text-zinc-500 border border-white/5"
                                             }`}>
                                             {user.plan}
                                         </div>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
                                             <div className={`w-1.5 h-1.5 rounded-full ${user.apiStatus === "Active" ? "bg-emerald-500" :
                                                 user.apiStatus === "Pending" ? "bg-orange-500" : "bg-red-500"
                                                 }`} />
-                                            <p className="text-[10px] text-zinc-500">{user.apiStatus} API</p>
+                                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">{user.apiStatus} API</p>
                                         </div>
                                     </div>
                                 </div>
@@ -123,9 +123,9 @@ export default function DashboardPage() {
                             ].map((broker) => (
                                 <div key={broker.name} className="flex items-center">
                                     <div className="w-full space-y-1">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="text-zinc-300">{broker.name}</span>
-                                            <span className="text-zinc-500">{broker.count} users</span>
+                                        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight">
+                                            <span className="text-zinc-400">{broker.name}</span>
+                                            <span className="text-zinc-500 font-mono">{broker.count} users</span>
                                         </div>
                                         <div className="h-1.5 w-full bg-[#111] rounded-full overflow-hidden">
                                             <div className="h-full bg-white/20" style={{ width: broker.pct }} />

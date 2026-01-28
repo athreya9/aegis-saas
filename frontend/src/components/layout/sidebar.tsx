@@ -11,14 +11,16 @@ import {
     Settings,
     ArrowLeftRight,
     LayoutDashboard,
-    Menu
+    Menu,
+    Zap
 } from "lucide-react"
 
 const items = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Strategies", icon: Cpu, href: "/dashboard/strategies" },
     { label: "Positions", icon: ArrowLeftRight, href: "/dashboard/positions" },
+    { label: "Automation", icon: Zap, href: "/dashboard/automation" },
     { label: "Scanner", icon: Activity, href: "/dashboard/scanner" },
-    { label: "Risk", icon: ShieldAlert, href: "/dashboard/risk" },
     { label: "Settings", icon: Settings, href: "/dashboard/settings" },
 ]
 

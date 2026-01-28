@@ -12,15 +12,17 @@ export default function BrokersPage() {
     useEffect(() => {
         const fetchAllStatus = async () => {
             try {
-                const res = await fetch('http://91.98.226.5:4100/api/v1/control/all-status');
+                const res = await fetch('http://91.98.226.5:4100/api/v1/admin/users', {
+                    headers: { 'x-user-role': 'ADMIN' }
+                });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    const mapped = data.data.map((s: any) => ({
-                        user: s.userId,
-                        broker: s.brokerConnected ? "Zerodha Kite" : "None",
-                        status: s.brokerConnected ? "Connected" : "Disconnected",
-                        expires: s.sessionExpiresAt ? new Date(s.sessionExpiresAt).toLocaleTimeString() : "-",
-                        error: !s.brokerConnected
+                    const mapped = data.data.map((u: any) => ({
+                        user: u.email.split('@')[0], // Display username/part of email
+                        broker: u.broker_name || "None",
+                        status: u.broker_status === 'CONNECTED' ? "Connected" : "Disconnected",
+                        expires: "Active Session", // We don't have exact expiry in this view yet
+                        error: u.broker_status !== 'CONNECTED' && u.broker_name
                     }));
                     setConnections(mapped);
                 }

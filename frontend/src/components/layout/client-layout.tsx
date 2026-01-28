@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Navbar } from "@/components/layout/navbar"
 import dynamic from 'next/dynamic'
+import { SupportChat } from "@/components/assistant/support-chat"
 
 const AegisNavigatorDynamic = dynamic(
     () => import('@/components/navigator/aegis-navigator').then((mod) => mod.AegisNavigator),
@@ -35,6 +36,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             {!isDashboard && (
                 <AegisNavigatorDynamic />
             )}
+
+            <SupportChat />
         </>
     )
 }

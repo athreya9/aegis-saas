@@ -138,6 +138,14 @@
   mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
 }
 
+.financial-label {
+  @apply text-[11px] font-bold uppercase tracking-wider text-zinc-500;
+}
+
+.financial-value {
+  @apply text-xl font-mono text-white font-black tracking-tight;
+}
+
 @layer utilities {
   .animate-ken-burns {
     animation: ken-burns 20s ease-out infinite alternate;

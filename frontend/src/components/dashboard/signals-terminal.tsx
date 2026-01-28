@@ -33,7 +33,7 @@ export function SignalsTerminal() {
     useEffect(() => {
         const fetchSignals = async () => {
             try {
-                const res = await fetch('http://91.98.226.5:4100/api/v1/signals/today');
+                const res = await fetch('http://91.98.226.5:4100/api/v1/signals/recent');
                 if (!res.ok) throw new Error('Failed to fetch signals');
                 const data = await res.json();
 
@@ -106,8 +106,8 @@ export function SignalsTerminal() {
                         <BarChart3 className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Signals</p>
-                        <p className="text-xl font-mono text-white font-bold">{stats.total}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold">Today's Signals</p>
+                        <p className="text-xl font-mono text-white font-black tracking-tight">{stats.total}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 md:border-r border-white/5 pr-4">
@@ -115,8 +115,8 @@ export function SignalsTerminal() {
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                     </div>
                     <div>
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Target Hit</p>
-                        <p className="text-xl font-mono text-emerald-500 font-bold">{stats.t1}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold">Target Hit</p>
+                        <p className="text-xl font-mono text-emerald-500 font-black tracking-tight">{stats.t1}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 md:border-r border-white/5 pr-4">
@@ -124,8 +124,8 @@ export function SignalsTerminal() {
                         <XCircle className="w-5 h-5 text-rose-500" />
                     </div>
                     <div>
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">SL Hit</p>
-                        <p className="text-xl font-mono text-rose-500 font-bold">{stats.sl}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold">SL Hit</p>
+                        <p className="text-xl font-mono text-rose-500 font-black tracking-tight">{stats.sl}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -133,8 +133,8 @@ export function SignalsTerminal() {
                         <TrendingUp className="w-5 h-5 text-blue-500" />
                     </div>
                     <div>
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Success Rate</p>
-                        <p className="text-xl font-mono text-blue-500 font-bold">{stats.successRate}%</p>
+                        <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold">Success Rate</p>
+                        <p className="text-xl font-mono text-blue-500 font-black tracking-tight">{stats.successRate}%</p>
                     </div>
                 </div>
             </div>
@@ -179,7 +179,7 @@ export function SignalsTerminal() {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[9px] text-zinc-600 font-mono">LIVE</span>
+                                <span className="text-[10px] text-zinc-500 font-mono font-bold">LIVE</span>
                             </div>
                         </div>
 
@@ -207,77 +207,111 @@ function SignalCard({ signal, isLatest }: { signal: Signal, isLatest: boolean })
     const isBuy = signal.direction === 'BUY';
     const isLoss = signal.outcome_status.includes('Stop Loss');
     const isTarget = signal.outcome_status.includes('Target');
-    const isActive = signal.outcome_status === 'OPEN'; // Matches Blueprint outcome_status
+    const isActive = signal.outcome_status === 'OPEN';
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        // Basic feedback: could be a toast, but keeping it simple for now
+    };
 
     return (
         <div className={cn(
-            "relative p-4 rounded-lg border bg-[#0a0a0a] transition-all duration-500 group hover:border-white/10",
-            isLatest ? "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]" : "border-white/[0.03]"
+            "relative p-5 rounded-xl border bg-[#0a0a0a] transition-all duration-500 group hover:border-white/20",
+            isLatest ? "border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "border-white/[0.05]"
         )}>
             {isLatest && (
-                <div className="absolute top-0 right-0 w-full h-full rounded-lg animate-pulse-subtle pointer-events-none border border-emerald-500/10" />
+                <div className="absolute top-0 right-0 w-full h-full rounded-xl animate-pulse-subtle pointer-events-none border border-emerald-500/20" />
             )}
 
             {/* Header: Time & Confidence */}
-            <div className="flex items-center justify-between mb-3 border-b border-white/[0.03] pb-2">
-                <div className="flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-zinc-600" />
-                    <span className="text-[10px] font-mono text-zinc-500">{signal.timestamp_ist}</span>
+            <div className="flex items-center justify-between mb-4 border-b border-white/[0.05] pb-2">
+                <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                    <span className="text-[11px] font-mono text-zinc-400 font-bold tracking-tight">{signal.timestamp_ist}</span>
                 </div>
-                <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-mono border-zinc-800 text-zinc-500">
+                <Badge variant="outline" className="h-5 px-2 text-[10px] font-mono border-zinc-800 text-zinc-400 bg-zinc-900/50">
                     {signal.confidence_pct}% CONF
                 </Badge>
             </div>
 
-            {/* Symbol & Direction */}
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex flex-col gap-0.5">
-                    <span className="text-[11px] font-bold text-white tracking-tight">{signal.symbol}</span>
-                    <div className="flex items-center gap-1.5 mt-1">
-                        {isBuy ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : <TrendingDown className="w-3 h-3 text-rose-500" />}
+            {/* Symbol & Direction - LARGE & CLEAR */}
+            <div className="flex items-center justify-between mb-5">
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2 group/copy cursor-pointer" onClick={() => copyToClipboard(signal.symbol)}>
+                        <span className="text-xl font-black text-white tracking-tighter uppercase">{signal.symbol}</span>
+                        <Zap size={14} className="text-zinc-700 group-hover/copy:text-white transition-colors" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                        {isBuy ? <TrendingUp className="w-4 h-4 text-emerald-500" /> : <TrendingDown className="w-4 h-4 text-rose-500" />}
                         <span className={cn(
-                            "text-[10px] font-black uppercase tracking-widest",
+                            "text-[12px] font-black uppercase tracking-[0.1em]",
                             isBuy ? "text-emerald-500" : "text-rose-500"
                         )}>
                             {signal.direction}
                         </span>
                     </div>
                 </div>
-                <div className="text-right">
-                    <span className="text-[9px] text-zinc-600 block uppercase tracking-wider mb-0.5">Entry</span>
-                    <span className="text-sm font-mono text-white font-medium">{signal.entry_price}</span>
+                <div className="text-right group/copy cursor-pointer" onClick={() => copyToClipboard(signal.entry_price.toString())}>
+                    <span className="text-[11px] text-zinc-500 block uppercase tracking-wider font-bold mb-1">Entry Price</span>
+                    <span className="text-2xl font-mono text-white font-black tracking-tighter">{signal.entry_price}</span>
                 </div>
             </div>
 
-            {/* Levels Grid */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className="p-2 rounded bg-rose-500/[0.03] border border-rose-500/10">
-                    <span className="text-[8px] text-rose-500/70 block uppercase tracking-widest mb-1">Stop Loss</span>
-                    <span className="text-xs font-mono text-rose-400">{signal.stop_loss}</span>
+            {/* Primary Levels Grid - HIGH CONTRAST */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div
+                    className="p-4 rounded-xl bg-rose-500/[0.03] border border-rose-500/20 hover:border-rose-500/40 transition-all cursor-pointer group/copy"
+                    onClick={() => copyToClipboard(signal.stop_loss.toString())}
+                >
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] text-rose-500/80 block uppercase tracking-wider font-bold">Stop Loss</span>
+                        <Zap size={12} className="text-rose-900/40 group-hover/copy:text-rose-500" />
+                    </div>
+                    <span className="text-xl font-mono text-rose-400 font-black tracking-tighter">{signal.stop_loss}</span>
                 </div>
-                <div className="p-2 rounded bg-emerald-500/[0.03] border border-emerald-500/10">
-                    <span className="text-[8px] text-emerald-500/70 block uppercase tracking-widest mb-1">Target 1</span>
-                    <span className="text-xs font-mono text-emerald-400">{signal.targets.t1}</span>
+                <div
+                    className="p-4 rounded-xl bg-emerald-500/[0.03] border border-emerald-500/20 hover:border-emerald-500/40 transition-all cursor-pointer group/copy"
+                    onClick={() => copyToClipboard(signal.targets.t1.toString())}
+                >
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] text-emerald-500/80 block uppercase tracking-wider font-bold">Target 1</span>
+                        <Zap size={12} className="text-emerald-900/40 group-hover/copy:text-emerald-500" />
+                    </div>
+                    <span className="text-xl font-mono text-emerald-400 font-black tracking-tighter">{signal.targets.t1}</span>
                 </div>
             </div>
 
-            {/* Extended Targets (Compact) */}
-            <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 bg-white/[0.02] p-1.5 rounded border border-white/[0.02]">
-                <Target className="w-3 h-3 text-zinc-700" />
-                <div className="flex gap-3">
-                    <span>T2: <span className="text-zinc-400">{signal.targets.t2}</span></span>
-                    <span className="text-zinc-700">•</span>
-                    <span>T3: <span className="text-zinc-400">{signal.targets.t3}</span></span>
+            {/* Secondary Targets - FLEXIBLE & SCANNABLE */}
+            <div className="flex flex-col gap-2">
+                <div
+                    className="flex items-center justify-between text-[12px] font-mono text-zinc-400 bg-white/[0.02] p-3 rounded-lg border border-white/5 hover:border-white/10 transition-all cursor-pointer group/copy"
+                    onClick={() => copyToClipboard(signal.targets.t2.toString())}
+                >
+                    <div className="flex items-center gap-3">
+                        <Target className="w-4 h-4 text-zinc-600" />
+                        <span className="font-black">TARGET 2</span>
+                    </div>
+                    <span className="text-white font-black">{signal.targets.t2}</span>
+                </div>
+                <div
+                    className="flex items-center justify-between text-[12px] font-mono text-zinc-400 bg-white/[0.02] p-3 rounded-lg border border-white/5 hover:border-white/10 transition-all cursor-pointer group/copy"
+                    onClick={() => copyToClipboard(signal.targets.t3.toString())}
+                >
+                    <div className="flex items-center gap-3">
+                        <Target className="w-4 h-4 text-zinc-600" />
+                        <span className="font-black">TARGET 3</span>
+                    </div>
+                    <span className="text-white font-black">{signal.targets.t3}</span>
                 </div>
             </div>
 
             {/* Explicit Outcome Status */}
             {!isActive && (
                 <div className={cn(
-                    "mt-3 flex items-center justify-center gap-2 py-1.5 rounded border text-[10px] font-black uppercase tracking-widest",
+                    "mt-4 flex items-center justify-center gap-3 py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest",
                     isTarget ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"
                 )}>
-                    {isTarget ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                    {isTarget ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                     {signal.outcome_status}
                 </div>
             )}

@@ -24,9 +24,51 @@ import { MarketScanner } from "@/components/dashboard/market-scanner"
 import { RiskHeatmap } from "@/components/dashboard/risk-heatmap"
 import { SystemHealthCard } from "@/components/dashboard/system-health"
 import { HeroMetricsBar } from "@/components/dashboard/hero-metrics-bar"
+import { BrokerStatusCard } from "@/components/broker/broker-status-card"
+import { BrokerConnectModal } from "@/components/broker/broker-connect-modal"
+import { RiskControlCard } from "@/components/dashboard/risk-control-card"
+import { RiskDisclaimer } from "@/components/dashboard/risk-disclaimer"
+import React, { useState, useEffect } from "react"
 
 export default function DashboardPage() {
     const { user } = useAuth();
+    const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
+    const [brokerStatus, setBrokerStatus] = useState<any>(null);
+    const [executionMode, setExecutionMode] = useState<'SANDBOX' | 'REQUESTED' | 'LIVE'>('SANDBOX');
+
+    // Fetch Broker Status
+    const fetchStatus = async () => {
+        try {
+            const res = await fetch('http://91.98.226.5:4100/api/v1/broker/status');
+            const data = await res.json();
+            if (data.status === 'success') {
+                setBrokerStatus(data.data);
+                if (data.data.executionMode) {
+                    setExecutionMode(data.data.executionMode);
+                }
+            }
+        } catch (e) {
+            console.error("Broker Status Fetch Fail");
+        }
+    };
+
+    useEffect(() => {
+        fetchStatus();
+    }, []);
+
+    const handleConnect = async (brokerId: string) => {
+        try {
+            // Mock connection for now - Real implementation uses backend
+            await fetch('http://91.98.226.5:4100/api/v1/broker/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ brokerId, apiKey: 'mock', accessToken: 'mock' })
+            });
+            fetchStatus();
+        } catch (e) {
+            console.error("Connect Failed");
+        }
+    };
     return (
         <div className="">
             <div className="container mx-auto max-w-7xl px-6 py-8 space-y-8">
@@ -38,8 +80,8 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-3">
                                 <Clock className="w-5 h-5 text-amber-500 animate-pulse" />
                                 <div>
-                                    <h4 className="text-sm font-semibold text-amber-500 uppercase tracking-tighter">Subscription Action Required</h4>
-                                    <p className="text-[11px] text-zinc-500">
+                                    <h4 className="text-[12px] font-black text-amber-500 uppercase tracking-tight">Subscription Action Required</h4>
+                                    <p className="text-[12px] text-zinc-400 font-medium">
                                         {user?.status === "PENDING_PAYMENT"
                                             ? "Your account is inactive. Complete payment to start trading."
                                             : "Your Institutional plan will expire in 2 days. Renew to avoid edge-execution interruptions."}
@@ -55,6 +97,9 @@ export default function DashboardPage() {
 
                 {/* Top Metrics Bar */}
                 <HeroMetricsBar />
+
+                {/* Risk Disclaimer */}
+                <RiskDisclaimer />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     {/* Main Content Area */}
@@ -80,53 +125,10 @@ export default function DashboardPage() {
 
                         {/* Strategy Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {[
-                                { name: "alpha-nifty-trend", status: "Production", env: "Live", branch: "main", time: "2m ago", commit: "Optimized entry triggers" },
-                                { name: "banknifty-scalper-v2", status: "Development", env: "Paper", branch: "dev", time: "1h ago", commit: "Slippage protection v2" },
-                                { name: "option-writing-theta", status: "Production", env: "Live", branch: "main", time: "4h ago", commit: "Delta selection" },
-                            ].map((strategy, i) => (
-                                <Card key={i} className="group bg-[#0a0a0a] border-white/5 hover:border-primary/30 transition-all duration-500 overflow-hidden relative">
-                                    <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <ArrowUpRight className="w-3.5 h-3.5 text-zinc-700 hover:text-white cursor-pointer" />
-                                    </div>
-                                    <CardHeader className="pb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded bg-white/[0.03] border border-white/5 group-hover:border-primary/20 transition-colors">
-                                                <div className={`w-2 h-2 rounded-full ${strategy.status === 'Production' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'}`} />
-                                            </div>
-                                            <div>
-                                                <CardTitle className="text-xs font-black text-white uppercase tracking-tight">
-                                                    {strategy.name}
-                                                </CardTitle>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-[9px] font-mono font-bold text-zinc-600 uppercase">{strategy.status}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-
-                                    <CardContent className="pb-6">
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between text-[10px]">
-                                                <span className="text-zinc-600 font-bold uppercase tracking-widest">Environment</span>
-                                                <span className="text-zinc-300 font-mono">{strategy.env}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-[10px]">
-                                                <span className="text-zinc-600 font-bold uppercase tracking-widest">Runtime</span>
-                                                <span className="text-emerald-500 font-mono font-black">STABLE</span>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-
-                                    <CardFooter className="pt-0 border-t border-white/[0.03] py-3 bg-white/[0.01] flex items-center justify-between text-[9px] text-zinc-500">
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-2.5 h-2.5" />
-                                            <span>{strategy.time}</span>
-                                        </div>
-                                        <div className="font-mono uppercase tracking-tighter opacity-50">{strategy.commit.substring(0, 15)}...</div>
-                                    </CardFooter>
-                                </Card>
-                            ))}
+                            <div className="p-6 border border-white/5 rounded-lg bg-[#0a0a0a] text-center">
+                                <p className="text-zinc-500 text-sm">No Active Strategies Deployed</p>
+                                <Button variant="link" className="text-primary text-xs mt-2">Browse Marketplace</Button>
+                            </div>
                         </div>
 
                         {/* Large Heatmap / Metrics Area */}
@@ -137,42 +139,35 @@ export default function DashboardPage() {
 
                     {/* Sidebar Area - The "Live Control" Column */}
                     <div className="lg:col-span-3 space-y-6">
-                        <div className="h-[600px]">
+                        <RiskControlCard />
+
+                        <BrokerStatusCard
+                            isConnected={brokerStatus?.brokerConnected}
+                            brokerName={brokerStatus?.brokerName}
+                            onReconnect={() => setIsBrokerModalOpen(true)}
+                        />
+
+                        <div className="h-[400px]">
                             <MarketScanner />
                         </div>
-
-                        <Card className="bg-[#0a0a0a] border-white/5 overflow-hidden">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Risk Profile</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1 font-bold text-[10px] uppercase tracking-widest">
-                                        Balanced
-                                    </Badge>
-                                    <Shield className="w-4 h-4 text-zinc-800" />
-                                </div>
-                                <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
-                                    Baseline mandate. High-probability trend execution with strict ATR-based volatility scaling.
-                                </p>
-                            </CardContent>
-                            <CardFooter className="bg-primary/[0.02] border-t border-white/5 py-3">
-                                <p className="text-[9px] text-zinc-700 font-black uppercase tracking-tighter">
-                                    Locked during live session.
-                                </p>
-                            </CardFooter>
-                        </Card>
 
                         <SystemHealthCard />
                     </div>
                 </div>
 
                 <div className="mt-8 flex justify-center border-t border-white/5 pt-8">
-                    <Button variant="link" className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 hover:text-white transition-all">
+                    <Button variant="link" className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all">
                         Access Full Strategy Ledger <ArrowUpRight className="ml-1 w-3 h-3" />
                     </Button>
                 </div>
             </div>
+
+            <BrokerConnectModal
+                isOpen={isBrokerModalOpen}
+                onClose={() => setIsBrokerModalOpen(false)}
+                onConnect={handleConnect}
+                executionMode={executionMode}
+            />
         </div>
     )
 }

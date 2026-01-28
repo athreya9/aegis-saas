@@ -1,7 +1,50 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
 export default function SubscriptionsPage() {
+    const [stats, setStats] = useState<any[]>([]);
+    const [recent, setRecent] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch('http://91.98.226.5:4100/api/v1/admin/users', {
+                    headers: { 'x-user-role': 'ADMIN' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Aggregate Plan Stats
+                    const planCounts = data.data.reduce((acc: any, u: any) => {
+                        const plan = u.plan_type || "STARTER";
+                        acc[plan] = (acc[plan] || 0) + 1;
+                        return acc;
+                    }, {});
+
+                    setStats([
+                        { name: "Starter", price: "₹2,999", users: planCounts["STARTER"] || 0, revenue: `₹${((planCounts["STARTER"] || 0) * 2.99).toFixed(1)}L`, growth: "-" },
+                        { name: "Pro", price: "₹7,999", users: planCounts["PRO"] || 0, revenue: `₹${((planCounts["PRO"] || 0) * 7.99).toFixed(1)}L`, growth: "-" },
+                        { name: "Institutional", price: "Custom", users: planCounts["ENTERPRISE"] || 0, revenue: "₹0L", growth: "-" },
+                    ]);
+
+                    // Recent Events (Mocked from creation date for now)
+                    setRecent(data.data.slice(0, 5).map((u: any) => ({
+                        user: u.email,
+                        plan: u.plan_type || "STARTER",
+                        event: "Active",
+                        date: new Date(u.created_at).toLocaleDateString()
+                    })));
+                }
+            } catch (e) {
+                console.error("Failed to fetch sub stats");
+            }
+        };
+        fetchStats();
+    }, []);
+
     return (
         <div className="space-y-6">
             <div>
@@ -10,11 +53,7 @@ export default function SubscriptionsPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-                {[
-                    { name: "Starter", price: "₹2,999", users: 142, revenue: "₹4.2L", growth: "+12%" },
-                    { name: "Pro", price: "₹7,999", users: 89, revenue: "₹7.1L", growth: "+8%" },
-                    { name: "Institutional", price: "Custom", users: 12, revenue: "₹18.5L", growth: "+2%" },
-                ].map((plan) => (
+                {stats.map((plan) => (
                     <Card key={plan.name} className="bg-zinc-900 border-zinc-800">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-md font-medium text-white">{plan.name}</CardTitle>
@@ -37,12 +76,7 @@ export default function SubscriptionsPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {[
-                            { user: "alex@vertex.com", plan: "Pro", event: "Renewed", date: "2 mins ago" },
-                            { user: "sarah@fund.io", plan: "Institutional", event: "Upgraded", date: "1 hour ago" },
-                            { user: "mike@trader.net", plan: "Starter", event: "Payment Failed", date: "3 hours ago", error: true },
-                            { user: "jason@quant.lab", plan: "Pro", event: "Renewed", date: "5 hours ago" },
-                        ].map((sub, i) => (
+                        {recent.map((sub, i) => (
                             <div key={i} className="flex items-center justify-between border-b border-zinc-800 last:border-0 pb-4 last:pb-0">
                                 <div>
                                     <p className="font-medium text-white">{sub.user}</p>

@@ -1,68 +1,77 @@
-"use client";
+"use client"
 
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Layers, Play, Settings, Shield, Plus, ArrowUpRight } from "lucide-react";
+import { useStrategies, Strategy } from "@/hooks/use-strategies"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Shield, TrendingUp, Activity, Lock } from "lucide-react"
 
 export default function StrategiesPage() {
+    const { strategies, isLoading, error } = useStrategies()
+
+    if (isLoading) {
+        return <div className="p-8 text-zinc-500">Loading Strategies...</div>
+    }
+
+    if (error) {
+        return <div className="p-8 text-red-500">Error: {error}</div>
+    }
+
     return (
-        <div className="space-y-8 max-w-7xl mx-auto px-6 py-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tighter text-white uppercase flex items-center gap-3">
-                        <Layers className="text-primary w-8 h-8" />
-                        Strategy Management
-                    </h1>
-                    <p className="text-zinc-500 text-sm font-medium">Design, backtest, and deploy your algorithmic perimeter.</p>
-                </div>
-                <Button className="bg-primary text-white hover:bg-primary/90 font-black text-xs uppercase tracking-widest px-6 h-12 rounded-lg shadow-xl shadow-primary/20">
-                    <Plus className="w-4 h-4 mr-2" /> New Strategy
-                </Button>
+        <div className="container mx-auto p-6 space-y-8">
+            <div>
+                <h1 className="text-2xl font-bold text-white mb-2">Strategy Marketplace</h1>
+                <p className="text-zinc-400"> proven algorithmic strategies. Subscribe to automate execution.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                    { name: "Alpha-Nifty-Trend", type: "Trend Following", status: "Active", risk: "Balanced" },
-                    { name: "BankNifty-Scalper", type: "Mean Reversion", status: "Stopped", risk: "Active" },
-                    { name: "Option-Writing-Theta", type: "Delta Neutral", status: "Active", risk: "Conservative" },
-                ].map((strat, i) => (
-                    <Card key={i} className="bg-[#050505] border-white/5 hover:border-primary/30 transition-all group overflow-hidden">
-                        <CardHeader className="pb-4 border-b border-white/[0.03]">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${strat.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                                        <CardTitle className="text-sm font-black text-white uppercase tracking-tight">{strat.name}</CardTitle>
-                                    </div>
-                                    <span className="text-[10px] text-zinc-600 font-mono uppercase font-bold tracking-widest">{strat.type}</span>
-                                </div>
-                                <Button variant="ghost" size="icon" className="text-zinc-800 hover:text-white -mt-2">
-                                    <Settings className="w-4 h-4" />
-                                </Button>
+                {strategies.map((strategy) => (
+                    <Card key={strategy.id} className="bg-[#0A0A0A] border-zinc-800 flex flex-col">
+                        <CardHeader>
+                            <div className="flex justify-between items-start mb-2">
+                                <Badge variant="outline" className="border-indigo-500/30 text-indigo-400">
+                                    {strategy.risk_profile} RISK
+                                </Badge>
+                                <Shield className="w-4 h-4 text-zinc-500" />
                             </div>
+                            <CardTitle className="text-xl text-white">{strategy.name}</CardTitle>
+                            <CardDescription className="text-zinc-500 min-h-[40px]">{strategy.description}</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-6 pb-6 space-y-4">
+                        <CardContent className="flex-1 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5">
-                                    <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest block mb-1">Risk Profile</span>
-                                    <span className="text-xs font-bold text-zinc-300">{strat.risk}</span>
+                                <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                                    <p className="text-xs text-zinc-500 mb-1">Win Rate</p>
+                                    <p className="text-lg font-bold text-emerald-400 flex items-center gap-1">
+                                        <TrendingUp className="w-3 h-3" />
+                                        {strategy.win_rate}
+                                    </p>
                                 </div>
-                                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5">
-                                    <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest block mb-1">Win Rate</span>
-                                    <span className="text-xs font-bold text-emerald-500 font-mono">68.4%</span>
+                                <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                                    <p className="text-xs text-zinc-500 mb-1">Max Drawdown</p>
+                                    <p className="text-lg font-bold text-red-400 flex items-center gap-1">
+                                        <Activity className="w-3 h-3" />
+                                        {strategy.drawdown}
+                                    </p>
                                 </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {strategy.tags.map(tag => (
+                                    <span key={tag} className="text-[10px] bg-zinc-900 px-2 py-1 rounded text-zinc-400 border border-zinc-800">
+                                        #{tag}
+                                    </span>
+                                ))}
                             </div>
                         </CardContent>
-                        <CardFooter className="bg-white/[0.01] border-t border-white/[0.03] py-4 flex justify-between">
-                            <Button variant="outline" className="text-[10px] font-black border-white/5 text-zinc-500 hover:text-white">Backtest</Button>
-                            <Button className={`text-[10px] font-black ${strat.status === 'Active' ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20'} border`}>
-                                {strat.status === 'Active' ? 'Stop' : 'Deploy'}
+                        <CardFooter className="border-t border-zinc-800 pt-4">
+                            <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium">
+                                <Lock className="w-3 h-3 mr-2" />
+                                Subscribe to View Logic
                             </Button>
                         </CardFooter>
                     </Card>
                 ))}
             </div>
         </div>
-    );
+    )
 }

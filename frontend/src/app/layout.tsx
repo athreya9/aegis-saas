@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 
 import { AuthProvider } from "@/context/auth-context";
 import { NotificationProvider } from "@/context/notification-context";
+import { ConfigProvider } from "@/context/config-context";
 
 export const metadata: Metadata = {
   title: "Aegis | Institutional Execution",
@@ -48,13 +49,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
-        <AuthProvider>
-          <ClientLayout>
-            <NotificationProvider>
-              {children}
-            </NotificationProvider>
-          </ClientLayout>
-        </AuthProvider>
+        <ConfigProvider>
+          <AuthProvider>
+            <ClientLayout>
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
+            </ClientLayout>
+          </AuthProvider>
+        </ConfigProvider>
       </body>
     </html>
   );

@@ -1,0 +1,23 @@
+{
+    "dashboard.status.connected": "Your broker connection is active and validated.",
+    "dashboard.status.disconnected": "No active broker session. Trading is disabled.",
+    "dashboard.risk.heatmap": "Visual representation of your current P&L vs. Daily Risk Limit.",
+    "dashboard.risk.daily_loss": "Hard limit. Trading halts immediately if this daily loss is exceeded.",
+    "dashboard.risk.max_position": "Maximum number of lots allowed per single order.",
+    "dashboard.risk.trailing_sl": "Dynamic stop-loss that follows price movement by this percentage.",
+    "automation.launch.master_switch": "Main control to engage or disengage all algorithmic execution.",
+    "automation.launch.live_warning": "You are in LIVE mode. Real orders will be placed on the exchange.",
+    "automation.checklist.broker": "Verifies that a valid broker adapter is connected.",
+    "automation.checklist.session": "Checks if the current access token is valid and not expired.",
+    "automation.checklist.risk": "Ensures a risk profile is selected to govern trade sizing.",
+    "automation.checklist.limits": "Verifies that a daily loss limit is explicitly defined.",
+    "automation.panic_stop": "EMERGENCY: Instantly halts all logic and reverts to Sandbox mode.",
+    "os.health.kernel": "Connection Health to the Aegis Execution Kernel (Port 8080).",
+    "os.health.market": "Exchange connection status (Open/Closed).",
+    "telegram.control.broadcast": "Master switch for signal broadcasting to public channels.",
+    "telegram.control.channels": "List of active Telegram channels receiving signals.",
+    "saas.plans": "Your current subscription tier that determines trade limits and feature access.",
+    "saas.quota": "Remaining daily budget for live executions and signal signals.",
+    "saas.paper": "Simulated trading environment. No real funds are at risk.",
+    "saas.compliance": "Regulatory controls enforced by the Core Execution OS."
+}

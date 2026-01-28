@@ -3,6 +3,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import signalsRouter from './routes/signals';
 import controlRouter from './routes/control';
+import brokerRouter from './routes/broker';
+import adminRouter from './routes/admin';
+import adminUsersRouter from './routes/admin-users';
+import adminControlRouter from './routes/admin-control';
+import osProxyRouter from './routes/os-proxy';
+import adminTelegramRouter from './routes/admin-telegram';
+import strategiesRouter from './routes/strategies';
 
 dotenv.config();
 
@@ -23,8 +30,15 @@ app.get('/', (req, res) => {
     });
 });
 
-app.use('/api/v1/signals', signalsRouter);
 app.use('/api/v1/control', controlRouter);
+app.use('/api/v1/signals', signalsRouter);
+app.use('/api/v1/broker', brokerRouter);
+app.use('/api/v1/admin/training', adminRouter);
+app.use('/api/v1/admin/users', adminUsersRouter);
+app.use('/api/v1/admin/telegram', adminTelegramRouter);
+app.use('/api/v1/admin', adminControlRouter); // Mounts /admin/kill-switch and /admin/system/status
+app.use('/api/v1/os', osProxyRouter);
+app.use('/api/v1/strategies', strategiesRouter);
 
 // Start
 app.listen(PORT, '0.0.0.0', () => {
