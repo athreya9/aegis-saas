@@ -45,7 +45,8 @@ export function BrokerConnectModal({ isOpen, onClose, onConnect, executionMode =
     const handleRequestLive = async () => {
         setRequestLiveStatus('REQUESTING');
         try {
-            await fetch('http://localhost:4100/api/v1/execution-mode/request-live', {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
+            await fetch(`${baseUrl}/api/v1/execution-mode/request-live`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-user-id': 'default_user' }
             });
