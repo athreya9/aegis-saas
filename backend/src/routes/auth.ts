@@ -54,4 +54,45 @@ router.post('/signup', async (req: Request, res: Response) => {
     }
 });
 
+// POST /api/v1/auth/login
+router.post('/login', async (req: Request, res: Response) => {
+    try {
+        const { email, password } = req.body;
+
+        // Mock Accounts Bypass
+        if (email === 'demo@aegis.local' || email === 'admin@aegis.local') {
+            // Let frontend handle mock accounts, or handle here if we want centralized.
+            // But for consistent DB logic, let's query DB first.
+        }
+
+        const result = await db.query('SELECT user_id, email, password_hash, full_name, status, tier FROM users WHERE email = $1', [email]);
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        const user = result.rows[0];
+        const expectedHash = `mock_hash_${password}`;
+
+        if (user.password_hash !== expectedHash && user.password_hash !== password) { // Support plain text for legacy/dev
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        res.json({
+            status: "success",
+            data: {
+                id: user.user_id,
+                email: user.email,
+                name: user.full_name,
+                status: user.status,
+                tier: user.tier
+            }
+        });
+
+    } catch (e: any) {
+        console.error("Login Error:", e);
+        res.status(500).json({ status: "error", message: e.message });
+    }
+});
+
 export default router;

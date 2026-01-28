@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export type UserStatus = "PENDING_PAYMENT" | "PAYMENT_UNDER_REVIEW" | "ACTIVE" | "SUSPENDED";
+export type UserStatus = "PENDING_PAYMENT" | "PAYMENT_UNDER_REVIEW" | "ACTIVE" | "SUSPENDED" | "PENDING_APPROVAL";
 
 interface User {
     id: string;
@@ -15,7 +15,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    login: (email: string) => Promise<void>;
+    login: (email: string, passwordInput?: string) => Promise<void>;
     logout: () => void;
     checkStatus: () => void; // Force refresh status
 }
@@ -35,52 +35,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
     }, []);
 
-    const login = async (email: string) => {
+    const login = async (email: string, passwordInput?: string) => {
         setIsLoading(true);
-        // Mock login delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        let newUser: User;
+        // Demo/Admin Mock Bypass for reliability during dev (Frontend-only fallback)
+        if (email === "demo@aegis.local" || email === "admin@aegis.local") {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const newUser: User = email.includes("admin")
+                ? { id: "admin-user-01", email, name: "System Administrator", status: "ACTIVE" }
+                : { id: "demo-user-01", email, name: "SaaS Demo User", status: "ACTIVE" };
 
-        // ADMIN APPROVAL LOGIC MOCK
-        // Check if admin has "approved" this email (stored in a separate mock DB in localstorage)
-        const approvedUsers = JSON.parse(localStorage.getItem("aegis_approved_users") || "[]");
-        const isApproved = approvedUsers.includes(email);
-
-        if (email === "demo@aegis.local") {
-            // Demo user is always active
-            newUser = { id: "demo-user-01", email, name: "SaaS Demo User", status: "ACTIVE" };
-        } else if (email === "admin@aegis.local") {
-            newUser = { id: "admin-user-01", email, name: "System Administrator", status: "ACTIVE" };
-        } else {
-            // Regular signup
-            // If approved by admin mock, ACTIVE. Else, depends on where they came from. Default PENDING.
-            // We can check if they have "paid" (also mock localstorage)
-            const paidUsers = JSON.parse(localStorage.getItem("aegis_paid_users") || "[]");
-
-            if (isApproved) {
-                newUser = { id: "1", email, name: email.split("@")[0], status: "ACTIVE" };
-            } else if (paidUsers.includes(email)) {
-                newUser = { id: "1", email, name: email.split("@")[0], status: "PAYMENT_UNDER_REVIEW" };
-            } else {
-                newUser = { id: "1", email, name: email.split("@")[0], status: "PENDING_PAYMENT" };
-            }
+            setUser(newUser);
+            localStorage.setItem("aegis_user", JSON.stringify(newUser));
+            setIsLoading(false);
+            router.push(email.includes("admin") ? "/dashboard" : "/dashboard");
+            return;
         }
 
-        setUser(newUser);
-        localStorage.setItem("aegis_user", JSON.stringify(newUser));
-        setIsLoading(false);
+        try {
+            // Real API Call
+            // Use provided password or a default if coming from a flow that didn't capture it (less secure but handles legacy flows)
+            const password = passwordInput || "Pass123!@#";
 
-        // Routing Logic based on Status
-        if (newUser.id.includes("admin")) {
-            // Admin logic handled in Admin App, but for safety:
-            router.push("/dashboard");
-        } else {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100'}/api/v1/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!res.ok) {
+                throw new Error("Invalid credentials");
+            }
+
+            const data = await res.json();
+            const newUser: User = {
+                id: data.data.id,
+                email: data.data.email,
+                name: data.data.name,
+                status: data.data.status as UserStatus // Cast to enum
+            };
+
+            setUser(newUser);
+            localStorage.setItem("aegis_user", JSON.stringify(newUser));
+            setIsLoading(false);
+
+            // Routing Logic
             console.log("LOGIN REDIRECT Check:", newUser.status);
             if (newUser.status === "ACTIVE") router.push("/dashboard");
-            else if (newUser.status === "PAYMENT_UNDER_REVIEW") router.push("/payment-status");
+            else if (newUser.status === "PAYMENT_UNDER_REVIEW" || newUser.status === "PENDING_APPROVAL") router.push("/payment-status"); // Map PENDING_APPROVAL
             else if (newUser.status === "PENDING_PAYMENT") router.push("/payment");
             else router.push("/");
+
+        } catch (e) {
+            console.error("Login Error", e);
+            alert("Login Failed: Invalid Credentials");
+            setIsLoading(false);
         }
     };
 
