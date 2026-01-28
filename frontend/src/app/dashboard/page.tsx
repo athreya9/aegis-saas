@@ -56,17 +56,29 @@ export default function DashboardPage() {
         fetchStatus();
     }, []);
 
-    const handleConnect = async (brokerId: string) => {
+    const handleConnect = async (brokerId: string, credentials: Record<string, string>) => {
         try {
-            // Mock connection for now - Real implementation uses backend
-            await fetch('http://91.98.226.5:4100/api/v1/broker/connect', {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
+            const res = await fetch(`${baseUrl}/api/v1/broker/connect`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ brokerId, apiKey: 'mock', accessToken: 'mock' })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id || 'default_user'
+                },
+                body: JSON.stringify({
+                    brokerName: brokerId,
+                    credentials
+                })
             });
-            fetchStatus();
+
+            if (res.ok) {
+                fetchStatus();
+            } else {
+                throw new Error("Connection failed");
+            }
         } catch (e) {
-            console.error("Connect Failed");
+            console.error("Connect Failed", e);
+            throw e;
         }
     };
     return (

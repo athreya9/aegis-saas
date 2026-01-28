@@ -11,7 +11,7 @@ import { ShieldAlert, CheckCircle, Loader2 } from "lucide-react";
 interface BrokerConnectModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConnect: (brokerId: string) => void;
+    onConnect: (brokerId: string, credentials: Record<string, string>) => void;
     executionMode?: 'SANDBOX' | 'REQUESTED' | 'LIVE';
 }
 
@@ -34,7 +34,7 @@ export function BrokerConnectModal({ isOpen, onClose, onConnect, executionMode =
     const handleConnect = async () => {
         setStatus('CONNECTING');
         try {
-            onConnect(selectedBroker.id);
+            await onConnect(selectedBroker.id, credentials);
             setStatus('SUCCESS');
             // Don't close immediately to show connection success state
         } catch (e) {
