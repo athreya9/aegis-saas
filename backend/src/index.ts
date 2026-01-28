@@ -31,6 +31,10 @@ app.get('/', (req, res) => {
     });
 });
 
+// Priority Routes
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/strategies', strategiesRouter);
+
 app.use('/api/v1/control', controlRouter);
 app.use('/api/v1/signals', signalsRouter);
 app.use('/api/v1/broker', brokerRouter);
@@ -40,8 +44,8 @@ app.use('/api/v1/admin/telegram', adminTelegramRouter);
 app.use('/api/v1/admin', adminControlRouter); // Mounts /admin/kill-switch and /admin/system/status
 app.use('/api/v1/os', osProxyRouter);
 app.use('/api/v1/os', osProxyRouter);
-app.use('/api/v1/strategies', strategiesRouter);
-app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/admin', adminControlRouter); // Mounts /admin/kill-switch and /admin/system/status
+app.use('/api/v1/os', osProxyRouter);
 
 // Start
 app.listen(PORT, '0.0.0.0', () => {
