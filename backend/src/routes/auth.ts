@@ -100,4 +100,47 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/v1/auth/me
+// In a real app, this would use a JWT. For this Phase, we'll use a header x-user-id for lookup.
+router.get('/me', async (req: Request, res: Response) => {
+    try {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const result = await db.query('SELECT user_id, email, full_name, status, tier FROM users WHERE user_id = $1', [userId]);
+        if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+
+        const user = result.rows[0];
+        res.json({
+            status: "success",
+            data: {
+                id: user.user_id,
+                email: user.email,
+                name: user.full_name,
+                status: user.status,
+                tier: user.tier
+            }
+        });
+    } catch (e: any) {
+        res.status(500).json({ status: "error", message: e.message });
+    }
+});
+
+// POST /api/v1/auth/payment-complete
+router.post('/payment-complete', async (req: Request, res: Response) => {
+    try {
+        const { userId, email } = req.body;
+        if (!userId && !email) return res.status(400).json({ error: "User identification required" });
+
+        await db.query(
+            'UPDATE users SET status = $1 WHERE user_id = $2 OR email = $3',
+            ['PAYMENT_UNDER_REVIEW', userId, email]
+        );
+
+        res.json({ status: "success", message: "Payment recorded. Status updated to review." });
+    } catch (e: any) {
+        res.status(500).json({ status: "error", message: e.message });
+    }
+});
+
 export default router;
