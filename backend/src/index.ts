@@ -11,6 +11,7 @@ import osProxyRouter from './routes/os-proxy';
 import adminTelegramRouter from './routes/admin-telegram';
 import strategiesRouter from './routes/strategies';
 import authRouter from './routes/auth';
+import preferencesRouter from './routes/preferences';
 
 dotenv.config();
 
@@ -20,6 +21,12 @@ const PORT = 4100; // STRICT: Core-Safe Port
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Request Logger (Debug Phase)
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    next();
+});
 
 // Routes
 app.get('/', (req, res) => {
@@ -31,20 +38,23 @@ app.get('/', (req, res) => {
     });
 });
 
-// Priority Routes
+// Priority Routes (Auth & Strategies logic)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/strategies', strategiesRouter);
+app.use('/api/v1/preferences', preferencesRouter);
 
+// Core SaaS Routes
 app.use('/api/v1/control', controlRouter);
 app.use('/api/v1/signals', signalsRouter);
 app.use('/api/v1/broker', brokerRouter);
+
+// Admin Routes
 app.use('/api/v1/admin/training', adminRouter);
 app.use('/api/v1/admin/users', adminUsersRouter);
 app.use('/api/v1/admin/telegram', adminTelegramRouter);
 app.use('/api/v1/admin', adminControlRouter); // Mounts /admin/kill-switch and /admin/system/status
-app.use('/api/v1/os', osProxyRouter);
-app.use('/api/v1/os', osProxyRouter);
-app.use('/api/v1/admin', adminControlRouter); // Mounts /admin/kill-switch and /admin/system/status
+
+// OS Proxy
 app.use('/api/v1/os', osProxyRouter);
 
 // Start

@@ -4,6 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
+// GET /api/v1/auth/test
+router.get('/test', (req, res) => {
+    res.json({ status: "ok", message: "Auth Router Mounted" });
+});
+
 // POST /api/v1/auth/signup
 router.post('/signup', async (req: Request, res: Response) => {
     try {
