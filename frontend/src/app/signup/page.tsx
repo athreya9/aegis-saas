@@ -25,6 +25,7 @@ function SignupContent() {
     const plan = searchParams.get("plan")
 
     const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
     const [broker, setBroker] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [showRiskModal, setShowRiskModal] = useState(false)
@@ -42,10 +43,41 @@ function SignupContent() {
         }, 500)
     }
 
-    // Modal Accepted -> Redirect
-    const handleRiskAccept = () => {
-        setShowRiskModal(false)
-        router.push(`/payment?plan=${plan}&email=${encodeURIComponent(email)}&broker=${encodeURIComponent(broker)}`)
+    // Modal Accepted -> Create User & Redirect
+    const handleRiskAccept = async () => {
+        try {
+            setIsLoading(true); // Re-use loading state
+
+            // Call Backend API
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100'}/api/v1/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    fullName: 'Aegis Trader', // Default
+                    broker
+                })
+            });
+
+            // Note: Password state is missing in the original component, I will fix that first.
+            if (!res.ok) {
+                const err = await res.json();
+                console.error("Signup failed", err);
+                alert("Signup Failed: " + (err.error || "Unknown Error"));
+                setIsLoading(false);
+                setShowRiskModal(false);
+                return;
+            }
+
+            setShowRiskModal(false);
+            router.push(`/payment?plan=${plan}&email=${encodeURIComponent(email)}&broker=${encodeURIComponent(broker)}`);
+        } catch (e) {
+            console.error("Signup Network Error", e);
+            alert("Network Error during Signup");
+            setIsLoading(false);
+            setShowRiskModal(false);
+        }
     }
 
     return (
@@ -116,6 +148,8 @@ function SignupContent() {
                                 <input
                                     type="password"
                                     required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full h-12 bg-black/40 border border-white/10 rounded-lg px-4 focus:border-[#00A3FF] focus:ring-1 focus:ring-[#00A3FF] transition-all text-sm font-medium text-white placeholder:text-zinc-600 outline-none"
                                     placeholder="••••••••"
                                 />

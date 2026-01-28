@@ -10,6 +10,7 @@ import adminControlRouter from './routes/admin-control';
 import osProxyRouter from './routes/os-proxy';
 import adminTelegramRouter from './routes/admin-telegram';
 import strategiesRouter from './routes/strategies';
+import authRouter from './routes/auth';
 
 dotenv.config();
 
@@ -38,7 +39,9 @@ app.use('/api/v1/admin/users', adminUsersRouter);
 app.use('/api/v1/admin/telegram', adminTelegramRouter);
 app.use('/api/v1/admin', adminControlRouter); // Mounts /admin/kill-switch and /admin/system/status
 app.use('/api/v1/os', osProxyRouter);
+app.use('/api/v1/os', osProxyRouter);
 app.use('/api/v1/strategies', strategiesRouter);
+app.use('/api/v1/auth', authRouter);
 
 // Start
 app.listen(PORT, '0.0.0.0', () => {
