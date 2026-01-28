@@ -30,13 +30,27 @@ export default function PaymentStatusPage() {
     };
 
     // DEBUG: Simulate Approval for Demo Purposes
-    const handleSimulateApproval = () => {
+    const handleSimulateApproval = async () => {
         if (!user) return;
-        const approvedUsers = JSON.parse(localStorage.getItem("aegis_approved_users") || "[]");
-        if (!approvedUsers.includes(user.email)) {
-            approvedUsers.push(user.email);
-            localStorage.setItem("aegis_approved_users", JSON.stringify(approvedUsers));
-            alert(`Simulated Admin Approval for ${user.email}. Click "Check Status" to proceed.`);
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
+            const res = await fetch(`${baseUrl}/api/v1/admin/users/${user.id}/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-role': 'ADMIN' // Mock admin role
+                },
+                body: JSON.stringify({ status: 'ACTIVE' })
+            });
+
+            if (res.ok) {
+                alert(`Simulated Admin Approval for ${user.email}. Click "Check Status" to proceed.`);
+            } else {
+                throw new Error("Failed to simulate approval");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Simulation failed. Backend might be down or ID mismatch.");
         }
     };
 

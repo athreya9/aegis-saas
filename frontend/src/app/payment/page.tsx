@@ -47,29 +47,34 @@ function PaymentContent() {
 
     const handlePayment = async () => {
         setIsProcessing(true);
-        // Mock payment verification delay
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+            // Mock payment verification delay
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // MOCK PAYMENT RECORDING
-        const paidUsers = JSON.parse(localStorage.getItem("aegis_paid_users") || "[]");
-        if (email && !paidUsers.includes(email)) {
-            paidUsers.push(email);
-            localStorage.setItem("aegis_paid_users", JSON.stringify(paidUsers));
+            // Call real backend to update status
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
+            await fetch(`${baseUrl}/api/v1/auth/payment-complete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user?.id, email: email })
+            });
+
+            // --- ALERT TELEMETRY (Mock) ---
+            console.log(`[ALERT System] Triggering TELEGRAM notification for: ${email}`);
+
+            // --- PWA NOTIFICATION (Mock) ---
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Payment Received', { body: 'Your account is now under review.' });
+            }
+
+            // Refresh local state and redirect
+            await login(email!);
+        } catch (e) {
+            console.error("Payment Error", e);
+            alert("Failed to process payment status. Please try again.");
+        } finally {
+            setIsProcessing(false);
         }
-
-        // --- ALERT TELEMETRY (Mock) ---
-        console.log(`[ALERT System] Triggering TELEGRAM notification for: ${email}`);
-        console.log(`[ALERT System] Payload: { event: "NEW_PAYMENT", user: "${email}", amount: "${amount}", time: "${new Date().toISOString()}" }`);
-
-        // --- PWA NOTIFICATION (Mock) ---
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('Payment Received', { body: 'Your account is now under review.' });
-        } else if ('Notification' in window && Notification.permission !== 'denied') {
-            Notification.requestPermission();
-        }
-
-        // Login/Create Account
-        await login(email!);
     };
 
     const amount = plan === "managed" ? "₹4,999" : "₹2,499";

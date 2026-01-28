@@ -100,22 +100,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Helper to refresh status (called by payment page)
-    const checkStatus = () => {
-        const savedUser = localStorage.getItem("aegis_user");
-        if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            // Re-run logic (simplified for immediate mock update)
-            const paidUsers = JSON.parse(localStorage.getItem("aegis_paid_users") || "[]");
-            const approvedUsers = JSON.parse(localStorage.getItem("aegis_approved_users") || "[]");
+    const checkStatus = async () => {
+        if (!user) return;
 
-            if (approvedUsers.includes(parsed.email)) {
-                parsed.status = "ACTIVE";
-            } else if (paidUsers.includes(parsed.email)) {
-                parsed.status = "PAYMENT_UNDER_REVIEW";
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100'}/api/v1/auth/me`, {
+                headers: { 'x-user-id': user.id }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const updatedUser: User = {
+                    id: data.data.id,
+                    email: data.data.email,
+                    name: data.data.name,
+                    status: data.data.status
+                };
+                setUser(updatedUser);
+                localStorage.setItem("aegis_user", JSON.stringify(updatedUser));
             }
-
-            setUser(parsed);
-            localStorage.setItem("aegis_user", JSON.stringify(parsed));
+        } catch (e) {
+            console.error("Status Refresh Error", e);
         }
     };
 
