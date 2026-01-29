@@ -1,13 +1,12 @@
-
 import { Router, Request, Response } from 'express';
-import { requirePermission } from '../middleware/rbac';
+import { requireRole, UserRole } from '../middleware/rbac';
 import { OSClient } from '../core/os-client';
 
 const router = Router();
 const client = OSClient.getInstance();
 
 // GET /api/v1/admin/telegram/status
-router.get('/status', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Request, res: Response) => {
+router.get('/status', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
     const status = await client.getTelegramStatus();
     res.json({
         ...status,
@@ -16,7 +15,7 @@ router.get('/status', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Requ
 });
 
 // POST /api/v1/admin/telegram/enable
-router.post('/enable', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Request, res: Response) => {
+router.post('/enable', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string || 'admin_123';
     // Audit Spec: { action, state, user_id, ip, timestamp }
     const auditLog = {
@@ -38,7 +37,7 @@ router.post('/enable', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Req
 });
 
 // POST /api/v1/admin/telegram/disable
-router.post('/disable', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Request, res: Response) => {
+router.post('/disable', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
     const userId = req.headers['x-user-id'] as string || 'admin_123';
 
     const auditLog = {
@@ -59,13 +58,13 @@ router.post('/disable', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Re
 });
 
 // GET /api/v1/admin/telegram/channels
-router.get('/channels', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Request, res: Response) => {
+router.get('/channels', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
     const data = await client.getTelegramChannels();
     res.json(data);
 });
 
 // POST /api/v1/admin/telegram/channels/update
-router.post('/channels/update', requirePermission('OS_CONTROL_TELEGRAM'), async (req: Request, res: Response) => {
+router.post('/channels/update', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
     // Audit Log for Config Change
     const userId = req.headers['x-user-id'] as string || 'admin_123';
     console.log('[AUDIT] Channel Config Update by', userId);
