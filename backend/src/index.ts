@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import signalsRouter from './routes/signals';
 import controlRouter from './routes/control';
 import brokerRouter from './routes/broker';
+import executionRouter from './routes/execution';
 import adminRouter from './routes/admin';
 import adminUsersRouter from './routes/admin-users';
 import adminControlRouter from './routes/admin-control';
@@ -22,7 +23,7 @@ const PORT = 4100; // STRICT: Core-Safe Port
 app.use(cors());
 app.use(express.json());
 
-// Request Logger (Debug Phase)
+// Request Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
     next();
@@ -31,10 +32,10 @@ app.use((req, res, next) => {
 // Routes
 app.get('/', (req, res) => {
     res.json({
-        service: 'Aegis SaaS Backend (Mock Phase 1)',
+        service: 'Aegis SaaS Backend',
         status: 'ONLINE',
-        mode: 'READ_ONLY',
-        version: 'v1.0.0-alpha'
+        mode: 'EXECUTION_GATEWAY',
+        version: 'v1.1.0'
     });
 });
 
@@ -42,9 +43,8 @@ app.get('/', (req, res) => {
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/strategies', strategiesRouter);
 app.use('/api/v1/preferences', preferencesRouter);
-
-// Core SaaS Routes
 app.use('/api/v1/control', controlRouter);
+app.use('/api/v1/execution', executionRouter);
 app.use('/api/v1/signals', signalsRouter);
 app.use('/api/v1/broker', brokerRouter);
 

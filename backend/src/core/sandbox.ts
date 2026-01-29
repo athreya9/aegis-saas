@@ -6,7 +6,6 @@ export type RiskProfile = 'CONSERVATIVE' | 'BALANCED' | 'ACTIVE';
 export class Sandbox {
     public readonly userId: string;
     private _planType: string = 'SIGNALS';
-    private _autoTradingEnabled: boolean = false;
     private _riskProfile: RiskProfile = 'CONSERVATIVE';
     private _dailyStats = {
         tradesExecuted: 0,
@@ -89,47 +88,27 @@ export class Sandbox {
     }
 
     // State Management
-    public async enableAutoTrading(executionMode: string = 'SANDBOX'): Promise<boolean> {
+    public async validateExecutionRequest(strategy: string, params: any): Promise<{ valid: boolean; reason?: string }> {
         // 1. Pre-Flight Check
-        const { ready } = await this.validatePreFlight();
+        const { ready, marketStatus } = await this.validatePreFlight();
         if (!ready) {
-            console.log(`[Sandbox ${this.userId}] Pre-Flight Failed. Cannot enable.`);
-            return false;
+            return { valid: false, reason: "Pre-Flight Checks Failed. Please resolve alerts." };
         }
 
-        // 2. Risk Check
+        // 2. Market Status Warning (Advisory Only)
+        if (marketStatus !== 'OPEN') {
+            console.log(`[Sandbox ${this.userId}] Requesting execution during ${marketStatus} (Advisory Accepted)`);
+        }
+
+        // 3. Risk Check
         if (this._dailyStats.lossIncurred >= this._dailyStats.riskCap) {
-            console.log(`[Sandbox ${this.userId}] Risk Limit Breach. Cannot enable.`);
-            return false;
+            return { valid: false, reason: `Daily Risk Limit Reached (₹${this._dailyStats.lossIncurred} / ₹${this._dailyStats.riskCap})` };
         }
 
-        // 3. Execution Gate
-        if (executionMode === 'LIVE' && (!this.broker.brokerName.includes('Paper') || this.broker.brokerName === 'NONE')) {
-            // Real broker requires LIVE mode
-            // In Read-Only phase, we allow "Enabling" but logic remains stripped.
-            console.log(`[Sandbox ${this.userId}] LIVE EXECUTION ENABLED via ${this.broker.brokerName}`);
-        } else {
-            console.log(`[Sandbox ${this.userId}] SANDBOX EXECUTION ENABLED.`);
-        }
-
-        this._autoTradingEnabled = true;
-        return true;
-    }
-
-    public disableAutoTrading(): void {
-        this._autoTradingEnabled = false;
-        console.log(`[Sandbox ${this.userId}] Auto-Trading DISABLED.`);
-    }
-
-    public panicStop(): void {
-        this.disableAutoTrading();
-        console.warn(`[Sandbox ${this.userId}] PANIC STOP TRIGGERED. HALTING ALL.`);
+        return { valid: true };
     }
 
     public setRiskProfile(profile: RiskProfile): void {
-        if (this._autoTradingEnabled) {
-            throw new Error("Cannot change Risk Profile while Auto-Trading is active.");
-        }
         this._riskProfile = profile;
         // Update Caps based on Sandbox Logic
         switch (profile) {
@@ -142,16 +121,12 @@ export class Sandbox {
 
     // Getters
     public async getStatus() {
+        // Just return session validity and profile
         const { valid, expiresAt } = await this.broker.checkTokenStatus();
-        if (!valid && this._autoTradingEnabled) {
-            console.warn(`[Sandbox ${this.userId}] Session Expired during Poll. Disabling Auto-Trading.`);
-            this.disableAutoTrading();
-        }
 
         return {
             userId: this.userId,
             planType: this._planType,
-            autoTrading: this._autoTradingEnabled,
             riskProfile: this._riskProfile,
             brokerConnected: valid,
             sessionExpiresAt: valid ? expiresAt : null,
@@ -161,8 +136,7 @@ export class Sandbox {
     // Synchronous status for manager
     public getStatusSync() {
         return {
-            userId: this.userId,
-            autoTrading: this._autoTradingEnabled
+            userId: this.userId
         };
     }
 }
@@ -175,27 +149,5 @@ export class SandboxManager {
             this.sandboxes.set(userId, new Sandbox(userId));
         }
         return this.sandboxes.get(userId)!;
-    }
-
-    public static async forceStop(userId: string) {
-        if (this.sandboxes.has(userId)) {
-            const sandbox = this.sandboxes.get(userId)!;
-            sandbox.panicStop();
-        }
-    }
-
-    public static async stopAll() {
-        console.warn("[SandboxManager] GLOBAL KILL SWITCH TRIGGERED");
-        for (const sandbox of this.sandboxes.values()) {
-            sandbox.panicStop();
-        }
-    }
-
-    public static getActiveCount(): number {
-        let count = 0;
-        for (const sandbox of this.sandboxes.values()) {
-            if (sandbox.getStatusSync().autoTrading) count++;
-        }
-        return count;
     }
 }

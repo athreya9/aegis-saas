@@ -78,6 +78,44 @@ export default function DashboardPage() {
     const openBrokerSetup = () => {
         router.push('/broker-setup');
     };
+
+    // Execution Request Handler
+    const [isDeploying, setIsDeploying] = useState(false);
+
+    const handleExecutionRequest = async () => {
+        setIsDeploying(true);
+        const requestId = `REQ-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
+            const res = await fetch(`${baseUrl}/api/v1/execution/request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user?.id || 'default_user',
+                    'x-user-plan': 'CORE',
+                    'x-request-id': requestId
+                },
+                body: JSON.stringify({
+                    strategy: 'NIFTY_TREND_V1',
+                    params: { risk: 'BALANCED' }
+                })
+            });
+
+            const data = await res.json();
+            if (data.status === 'success') {
+                alert(`Request Accepted: ${data.message}`);
+                setExecutionMode('REQUESTED');
+            } else {
+                alert(`Request Rejected: ${data.message}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Execution Request Failed: Network Error");
+        } finally {
+            setIsDeploying(false);
+        }
+    };
     return (
         <div className="">
             <div className="container mx-auto max-w-7xl px-6 py-8 space-y-8">
@@ -157,8 +195,11 @@ export default function DashboardPage() {
                                     <Filter className="w-3 h-3 mr-2" />
                                     Filter
                                 </Button>
-                                <Button className="h-10 bg-primary text-white hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest px-6 rounded-lg shadow-lg shadow-primary/20">
-                                    Deploy Strategy
+                                <Button
+                                    onClick={handleExecutionRequest}
+                                    disabled={isDeploying}
+                                    className="h-10 bg-primary text-white hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest px-6 rounded-lg shadow-lg shadow-primary/20">
+                                    {isDeploying ? 'Deploying...' : 'Deploy Strategy'}
                                 </Button>
                             </div>
                         </div>

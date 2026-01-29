@@ -162,4 +162,39 @@ export class OSClient {
     public async getTelegramChannels(): Promise<any> {
         return await this.fetchSafe(`${this.OS_URL}/api/telegram/channels`) || { channels: [] };
     }
+    // --- Command Submission (SaaS -> OS) ---
+    public async submitCommand(command: string, payload: any, userId: string, requestId: string): Promise<{ success: boolean; message?: string }> {
+        console.log(`[OSClient] Submitting Command: ${command} for ${userId} (ReqID: ${requestId})`);
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            const response = await fetch(`${this.OS_URL}/api/commands/submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-source': 'SAAS_BACKEND',
+                    'x-request-id': requestId
+                },
+                body: JSON.stringify({
+                    command: command,
+                    data: payload,
+                    source: `SAAS:${userId}`,
+                    timestamp: Date.now()
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                return { success: true };
+            } else {
+                const errText = await response.text();
+                return { success: false, message: `OS Rejection: ${errText}` };
+            }
+        } catch (e: any) {
+            console.error('[OSClient] Command Submission Failed:', e);
+            return { success: false, message: `Connectivity Error: ${e.message}` };
+        }
+    }
 }

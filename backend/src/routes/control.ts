@@ -5,6 +5,7 @@ import { SystemConfig } from '../core/config';
 import { RiskProfile } from '../core/sandbox';
 import { QuotaManager } from '../core/quota-manager';
 import { TIERS, UserTier } from '../config/tiers';
+import { OSClient } from '../core/os-client';
 
 const router = Router();
 
@@ -104,114 +105,41 @@ router.get('/all-status', async (req: any, res) => {
     });
 });
 
-// POST /api/v1/control/auto-trading
-router.post('/auto-trading', async (req: any, res) => {
-    const { enabled } = req.body;
-    const sandbox = sandboxManager.getSandbox(req.user.id);
-    const executionMode = (req.body.executionMode || 'SANDBOX').toUpperCase();
-
-    // 1. Quota Check for LIVE Trading
-    if (enabled && executionMode === 'LIVE') {
-        const userPlan = (req.user.plan || 'FREE').toUpperCase();
-        // Map string plan to UserTier enum (fallback to FREE)
-        const tier = TIERS[userPlan as keyof typeof TIERS] ? (userPlan as UserTier) : UserTier.FREE;
-
-        const quota = QuotaManager.canPlaceLiveTrade(req.user.id, tier);
-        if (!quota.allowed) {
-            return res.status(403).json({
-                error: "QUOTA_EXCEEDED",
-                message: quota.reason,
-                tier: userPlan
-            });
-        }
-    }
-
-    if (enabled) {
-        // Attempt to Enable Auto-Trading
-        const success = await sandbox.enableAutoTrading(executionMode);
-
-        if (!success) {
-            // Fetch checks to give specific reason
-            const { checks } = await sandbox.validatePreFlight();
-            const failed = checks.find(c => !c.passed);
-
-            return res.status(400).json({
-                error: "PRE_FLIGHT_FAILED",
-                message: failed ? `Check Failed: ${failed.label}` : "Auto-trading activation failed safety checks.",
-                checks
-            });
-        }
-    } else {
-        sandbox.disableAutoTrading();
-    }
-
-    const status = await sandbox.getStatus();
-
-    res.json({
-        status: "success",
-        current_state: status.autoTrading ? "ENABLED" : "DISABLED",
-        sandbox_state: status
-    });
-});
-
-// POST /api/v1/control/risk-profile
-router.post('/risk-profile', async (req: any, res) => {
-    const { profile } = req.body;
-    const sandbox = sandboxManager.getSandbox(req.user.id);
-
-    console.log(`[Control] Update Risk Profile attempt for ${req.user.id}: ${profile}`);
-
-    try {
-        sandbox.setRiskProfile(profile as RiskProfile);
-        const status = await sandbox.getStatus();
-        console.log(`[Control] Risk Profile updated to ${status.riskProfile}`);
-        res.json({
-            status: "success",
-            data: status
-        });
-    } catch (e: any) {
-        console.error(`[Control] Risk Profile update FAILED: ${e.message}`);
-        res.status(400).json({
-            error: "OPERATION_FAILED",
-            message: e.message
-        });
-    }
-});
-
-// GET /api/v1/control/pre-flight
-router.get('/pre-flight', async (req: any, res) => {
-    const sandbox = sandboxManager.getSandbox(req.user.id);
-    const result = await sandbox.validatePreFlight();
-    res.json({
-        status: "success",
-        data: result
-    });
-});
-
 // POST /api/v1/control/kill-switch
 router.post('/kill-switch', async (req: any, res) => {
-    const sandbox = sandboxManager.getSandbox(req.user.id);
+    const { reason } = req.body;
     console.warn(`[Control] KILL SWITCH REQUESTED by ${req.user.id}`);
 
-    // 1. Halt Trading Memory
-    sandbox.panicStop();
+    // Call OS Client Panic
+    const result = await OSClient.getInstance().triggerPanic(
+        req.user.id,
+        reason || "SAAS_ADMIN_MANUAL_KILL"
+    );
 
-    // 2. Revert Execution Mode in DB
-    try {
-        await db.query(
-            `UPDATE broker_credentials 
+    if (result.success) {
+        // Update DB to safe mode
+        try {
+            await db.query(
+                `UPDATE broker_credentials 
              SET execution_mode = 'SANDBOX', mode_updated_at = CURRENT_TIMESTAMP 
              WHERE user_id = $1`,
-            [req.user.id]
-        );
-    } catch (e) {
-        console.error("Kill Switch DB Revert Fail:", e);
-    }
+                [req.user.id]
+            );
+        } catch (e) {
+            console.error("Kill Switch DB Revert Fail:", e);
+        }
 
-    res.json({
-        status: "success",
-        message: "KILL SWITCH ACTIVATED. System Halted."
-    });
+        res.json({
+            status: "success",
+            message: "KILL SWITCH ACTIVATED. System Halted."
+        });
+    } else {
+        res.status(500).json({
+            status: "error",
+            message: "Failed to trigger OS Panic",
+            details: result.message
+        });
+    }
 });
 
 export default router;
