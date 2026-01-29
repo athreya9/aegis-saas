@@ -18,6 +18,7 @@ import {
     Shield
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
 
 import { MarketScanner } from "@/components/dashboard/market-scanner"
@@ -91,8 +92,8 @@ export default function DashboardPage() {
                     {/* Market Status Indicator */}
                     <div className="flex items-center space-x-4">
                         <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border ${marketStatus.warning
-                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
-                                : (marketStatus.status === 'OPEN' ? 'bg-green-500/10 border-green-500/30 text-green-500' : 'bg-zinc-800 border-zinc-700 text-zinc-400')
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
+                            : (marketStatus.status === 'OPEN' ? 'bg-green-500/10 border-green-500/30 text-green-500' : 'bg-zinc-800 border-zinc-700 text-zinc-400')
                             }`}>
                             <Activity className="w-4 h-4" />
                             <span className="text-xs font-bold uppercase tracking-wider">
