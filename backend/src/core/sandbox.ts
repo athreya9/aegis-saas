@@ -50,19 +50,41 @@ export class Sandbox {
     }
 
     // Pre-Flight Checklist
-    public async validatePreFlight(): Promise<{ ready: boolean; checks: any[] }> {
+    public async validatePreFlight(): Promise<{ ready: boolean; checks: any[]; marketStatus: string }> {
         const brokerValid = await this.validateBrokerSession();
+
+        // Time checks (IST) for Pre-Market Isolation
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istTime = new Date(now.getTime() + istOffset);
+        const hours = istTime.getUTCHours();
+        const minutes = istTime.getUTCMinutes();
+
+        // 09:00 - 09:15 is Pre-Market
+        const isPreMarket = hours === 9 && minutes >= 0 && minutes < 15;
+        const isMarketOpen = (hours === 9 && minutes >= 15) || (hours > 9 && hours < 15) || (hours === 15 && minutes <= 30);
+
+        // Pre-Market Policy Isolation: 
+        // SaaS treats Pre-Market as "Informational" (passed: true), whereas Core blocks it.
+        // We add a 'warning' field to communicate this to the UI.
+
         const checks = [
-            { id: 'BROKER_CONNECT', label: 'Broker Connected', passed: this.broker.brokerName !== 'Zerodha (Paper)' || this._planType === 'SIGNALS' }, // Paper ok for Signals plan
+            { id: 'BROKER_CONNECT', label: 'Broker Connected', passed: this.broker.brokerName !== 'Zerodha (Paper)' || this._planType === 'SIGNALS' },
             { id: 'SESSION_VALID', label: 'Session Valid', passed: brokerValid },
             { id: 'RISK_PROFILE', label: 'Risk Profile Set', passed: this._riskProfile !== undefined },
             { id: 'DAILY_LIMIT', label: 'Daily Loss Limit', passed: this._dailyStats.riskCap > 0 },
-            { id: 'MARKET_OPEN', label: 'Market Open', passed: true } // Mocked open
+            {
+                id: 'MARKET_STATUS',
+                label: 'Market Status',
+                passed: true, // ALWAYS TRUE FOR SAAS (Isolation)
+                warning: isPreMarket ? 'Pre-Market Session (Caution)' : (!isMarketOpen ? 'Market Closed' : undefined)
+            }
         ];
 
         return {
             ready: checks.every(c => c.passed),
-            checks
+            checks,
+            marketStatus: isPreMarket ? 'PRE_MARKET' : (isMarketOpen ? 'OPEN' : 'CLOSED')
         };
     }
 

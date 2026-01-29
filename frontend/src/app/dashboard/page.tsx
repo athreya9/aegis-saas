@@ -32,23 +32,41 @@ import React, { useState, useEffect } from "react"
 
 export default function DashboardPage() {
     const { user } = useAuth();
-    const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
+    const router = useRouter();
+
+    // State
     const [brokerStatus, setBrokerStatus] = useState<any>(null);
     const [executionMode, setExecutionMode] = useState<'SANDBOX' | 'REQUESTED' | 'LIVE'>('SANDBOX');
+    const [marketStatus, setMarketStatus] = useState<{ status: string; warning?: string }>({ status: 'CLOSED' });
 
-    // Fetch Broker Status
+    // Fetch Statuses
     const fetchStatus = async () => {
         try {
-            const res = await fetch('http://91.98.226.5:4100/api/v1/broker/status');
-            const data = await res.json();
-            if (data.status === 'success') {
-                setBrokerStatus(data.data);
-                if (data.data.executionMode) {
-                    setExecutionMode(data.data.executionMode);
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
+
+            // Broker Status
+            const resBroker = await fetch(`${baseUrl}/api/v1/broker/status`);
+            const dataBroker = await resBroker.json();
+            if (dataBroker.status === 'success') {
+                setBrokerStatus(dataBroker.data);
+                if (dataBroker.data.executionMode) {
+                    setExecutionMode(dataBroker.data.executionMode);
                 }
             }
+
+            // Market / Pre-Flight Status
+            const resPreFlight = await fetch(`${baseUrl}/api/v1/control/pre-flight`);
+            const dataPreFlight = await resPreFlight.json();
+            if (dataPreFlight.status === 'success') {
+                const mktCheck = dataPreFlight.data.checks.find((c: any) => c.id === 'MARKET_STATUS');
+                setMarketStatus({
+                    status: dataPreFlight.data.marketStatus,
+                    warning: mktCheck?.warning
+                });
+            }
+
         } catch (e) {
-            console.error("Broker Status Fetch Fail");
+            console.error("Status Fetch Fail", e);
         }
     };
 
@@ -56,34 +74,43 @@ export default function DashboardPage() {
         fetchStatus();
     }, []);
 
-    const handleConnect = async (brokerId: string, credentials: Record<string, string>) => {
-        try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100';
-            const res = await fetch(`${baseUrl}/api/v1/broker/connect`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': user?.id || 'default_user'
-                },
-                body: JSON.stringify({
-                    brokerName: brokerId,
-                    credentials
-                })
-            });
-
-            if (res.ok) {
-                fetchStatus();
-            } else {
-                throw new Error("Connection failed");
-            }
-        } catch (e) {
-            console.error("Connect Failed", e);
-            throw e;
-        }
+    const openBrokerSetup = () => {
+        router.push('/broker-setup');
     };
     return (
         <div className="">
             <div className="container mx-auto max-w-7xl px-6 py-8 space-y-8">
+
+                {/* Top Header with Market Status */}
+                <div className="flex justify-between items-center border-b border-white/5 pb-6">
+                    <div>
+                        <h1 className="text-2xl font-bold">Dashboard</h1>
+                        <p className="text-zinc-500 text-sm">Real-time execution overview</p>
+                    </div>
+
+                    {/* Market Status Indicator */}
+                    <div className="flex items-center space-x-4">
+                        <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border ${marketStatus.warning
+                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
+                                : (marketStatus.status === 'OPEN' ? 'bg-green-500/10 border-green-500/30 text-green-500' : 'bg-zinc-800 border-zinc-700 text-zinc-400')
+                            }`}>
+                            <Activity className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase tracking-wider">
+                                {marketStatus.warning || `Market ${marketStatus.status}`}
+                            </span>
+
+                            {/* Tooltip for Pre-Market */}
+                            {marketStatus.warning && (
+                                <div className="ml-2 group relative">
+                                    <div className="cursor-help bg-amber-500/20 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">?</div>
+                                    <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                                        Pre-market checks are advisory signals, not execution blockers.
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {/* Subscription Warning */}
                 {user?.status !== "ACTIVE" && (
@@ -156,7 +183,7 @@ export default function DashboardPage() {
                         <BrokerStatusCard
                             isConnected={brokerStatus?.brokerConnected}
                             brokerName={brokerStatus?.brokerName}
-                            onReconnect={() => setIsBrokerModalOpen(true)}
+                            onReconnect={openBrokerSetup}
                         />
 
                         <div className="h-[400px]">
@@ -173,13 +200,6 @@ export default function DashboardPage() {
                     </Button>
                 </div>
             </div>
-
-            <BrokerConnectModal
-                isOpen={isBrokerModalOpen}
-                onClose={() => setIsBrokerModalOpen(false)}
-                onConnect={handleConnect}
-                executionMode={executionMode}
-            />
         </div>
     )
 }
