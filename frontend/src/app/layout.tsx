@@ -33,7 +33,8 @@ export const metadata: Metadata = {
     title: "Aegis",
   },
   icons: {
-    icon: '/logo-processed.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   }
 };
 

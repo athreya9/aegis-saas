@@ -90,7 +90,8 @@ router.post('/login', async (req: Request, res: Response) => {
                 email: user.email,
                 name: user.full_name,
                 status: user.status,
-                tier: user.tier
+                tier: user.tier,
+                role: user.role || 'VIEW_ONLY'
             }
         });
 

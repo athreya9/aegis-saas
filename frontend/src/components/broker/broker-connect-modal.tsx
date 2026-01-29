@@ -18,7 +18,7 @@ interface BrokerConnectModalProps {
 const SUPPORTED_BROKERS = [
     { id: 'ZERODHA', name: 'Zerodha Kite', fields: ['apiKey', 'accessToken'], help: 'Generate API Key in Zerodha MyAPI portal. Requires active Kite Connect subscription.' },
     { id: 'ZERODHA_PAPER', name: 'Zerodha (Paper Trading)', fields: ['apiKey'], help: 'Sandbox mode for SaaS testing. Accepts any key.' },
-    { id: 'ANGEL_ONE', name: 'Angel One', fields: ['apiKey', 'userId'], help: 'Create app in Angel One SmartAPI portal to get your API Key.' },
+    { id: 'ANGEL_ONE', name: 'Angel One', fields: ['apiKey', 'userId', 'password', 'totp'], help: 'API Key from SmartAPI. TOTP from Authenticator App.' },
     { id: 'FYERS', name: 'Fyers', fields: ['appId', 'accessToken'], help: 'Generate App ID in Fyers API Dashboard.' }
 ];
 
