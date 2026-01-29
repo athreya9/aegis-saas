@@ -15,7 +15,7 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await login(email);
+        await login(email, password);
     };
 
     return (
