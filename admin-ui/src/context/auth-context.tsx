@@ -19,83 +19,84 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const [user, setUser] = useState<User | null>(null);
-const [isLoading, setIsLoading] = useState(true);
-const router = useRouter();
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
-useEffect(() => {
-    const savedUser = localStorage.getItem("aegis_admin_user");
-    if (savedUser) {
-        setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
-}, []);
+    useEffect(() => {
+        const savedUser = localStorage.getItem("aegis_admin_user");
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
+        setIsLoading(false);
+    }, []);
 
-const login = async (email: string, passwordInput?: string) => {
-    setIsLoading(true);
+    const login = async (email: string, passwordInput?: string) => {
+        setIsLoading(true);
 
-    try {
-        // Support local dev override if needed, but prefer real API
-        const password = passwordInput || "Aegis@saas$uper9"; // Default for dev convenience if UI doesn't pass it yet
+        try {
+            // Support local dev override if needed, but prefer real API
+            const password = passwordInput || "Aegis@saas$uper9"; // Default for dev convenience if UI doesn't pass it yet
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100'}/api/v1/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100'}/api/v1/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
 
-        if (!res.ok) {
-            // Fallback to Mock for existing hardcoded admin if API fails/is offline during dev
-            if (email === "admin@aegis.local") {
-                const mockUser: User = { id: "admin-user-01", email, name: "System Administrator", role: "ADMIN" };
-                setUser(mockUser);
-                localStorage.setItem("aegis_admin_user", JSON.stringify(mockUser));
+            if (!res.ok) {
+                // Fallback to Mock for existing hardcoded admin if API fails/is offline during dev
+                if (email === "admin@aegis.local") {
+                    const mockUser: User = { id: "admin-user-01", email, name: "System Administrator", role: "ADMIN" };
+                    setUser(mockUser);
+                    localStorage.setItem("aegis_admin_user", JSON.stringify(mockUser));
+                    setIsLoading(false);
+                    router.push("/dashboard");
+                    return;
+                }
+                throw new Error("Invalid credentials");
+            }
+
+            const data = await res.json();
+
+            // Enforce Admin Role
+            if (data.data.role !== 'SUPER_ADMIN' && data.data.role !== 'ADMIN') {
+                alert("Access Denied: Admin Privileges Required");
                 setIsLoading(false);
-                router.push("/dashboard");
                 return;
             }
-            throw new Error("Invalid credentials");
-        }
 
-        const data = await res.json();
+            const newUser: User = {
+                id: data.data.id,
+                email: data.data.email,
+                name: data.data.name,
+                role: data.data.role
+            };
 
-        // Enforce Admin Role
-        if (data.data.role !== 'SUPER_ADMIN' && data.data.role !== 'ADMIN') {
-            alert("Access Denied: Admin Privileges Required");
+            setUser(newUser);
+            localStorage.setItem("aegis_admin_user", JSON.stringify(newUser));
             setIsLoading(false);
-            return;
+            router.push("/dashboard");
+
+        } catch (e) {
+            console.error("Login Error", e);
+            alert("Login Failed: Invalid Credentials or Server Unavailable");
+            setIsLoading(false);
         }
+    };
 
-        const newUser: User = {
-            id: data.data.id,
-            email: data.data.email,
-            name: data.data.name,
-            role: data.data.role
-        };
+    const logout = () => {
+        setUser(null);
+        localStorage.removeItem("aegis_admin_user");
+        router.push("/login");
+    };
 
-        setUser(newUser);
-        localStorage.setItem("aegis_admin_user", JSON.stringify(newUser));
-        setIsLoading(false);
-        router.push("/dashboard");
-
-    } catch (e) {
-        console.error("Login Error", e);
-        alert("Login Failed: Invalid Credentials or Server Unavailable");
-        setIsLoading(false);
-    }
-};
-
-const logout = () => {
-    setUser(null);
-    localStorage.removeItem("aegis_admin_user");
-    router.push("/login");
-};
-
-return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
-        {children}
-    </AuthContext.Provider>
-);
+    return (
+        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 }
 
 export function useAuth() {
