@@ -6,6 +6,7 @@ import { RiskProfile } from '../core/sandbox';
 import { QuotaManager } from '../core/quota-manager';
 import { TIERS, UserTier } from '../config/tiers';
 import { OSClient } from '../core/os-client';
+import { requireRole, UserRole } from '../middleware/rbac';
 
 const router = Router();
 
@@ -34,6 +35,27 @@ router.get('/config-meta', (req, res) => {
             AUTOMATION: SystemConfig.getPlanConfig('AUTOMATION'),
             ENTERPRISE: SystemConfig.getPlanConfig('ENTERPRISE')
         }
+    });
+});
+
+// POST /api/v1/control/risk-profile
+router.post('/risk-profile', requireRole(UserRole.TRADER), async (req: any, res) => {
+    const { profile } = req.body;
+    const sandbox = sandboxManager.getSandbox(req.user.id);
+    sandbox.setRiskProfile(profile as RiskProfile);
+    res.json({
+        status: "success",
+        data: await sandbox.getStatus()
+    });
+});
+
+// GET /api/v1/control/pre-flight
+router.get('/pre-flight', requireRole(UserRole.TRADER), async (req: any, res) => {
+    const sandbox = sandboxManager.getSandbox(req.user.id);
+    const result = await sandbox.validatePreFlight();
+    res.json({
+        status: "success",
+        data: result
     });
 });
 

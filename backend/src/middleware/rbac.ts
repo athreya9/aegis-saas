@@ -1,84 +1,72 @@
-
 import { Request, Response, NextFunction } from 'express';
+import { db } from '../db/pg-client';
 
 export enum UserRole {
     SUPER_ADMIN = 'SUPER_ADMIN',
     ADMIN = 'ADMIN',
     TRADER = 'TRADER',
-    VIEWER = 'VIEWER'
+    VIEW_ONLY = 'VIEW_ONLY'
 }
 
-// Permission Granularity
-export type Permission =
-    | 'FULL_GOVERNANCE'    // Super Admin: All access
-    | 'OS_CONTROL_PANIC'   // Trigger Kill Switch
-    | 'OS_CONTROL_TELEGRAM'// Manage Telegram
-    | 'USER_MANAGE'        // Manage Users
-    | 'SIGNAL_VIEW'        // View Signals & Trade Data
-    | 'OS_READ_ONLY';      // View System Status Only
+// Extend Express Request
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                id: string;
+                role?: UserRole;
+                plan?: string;
+                brokerConnected?: boolean;
+            };
+        }
+    }
+}
 
-const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-    [UserRole.SUPER_ADMIN]: ['FULL_GOVERNANCE'],
-    [UserRole.ADMIN]: [
-        'OS_CONTROL_PANIC',
-        'OS_CONTROL_TELEGRAM',
-        'USER_MANAGE',
-        'SIGNAL_VIEW',
-        'OS_READ_ONLY'
-    ],
-    [UserRole.TRADER]: [
-        'SIGNAL_VIEW',
-        'OS_READ_ONLY'
-    ],
-    [UserRole.VIEWER]: [
-        'OS_READ_ONLY'
-    ]
-};
-
-export const hasPermission = (userRole: UserRole, requiredPermission: Permission): boolean => {
-    const perms = ROLE_PERMISSIONS[userRole] || [];
-    if (perms.includes('FULL_GOVERNANCE')) return true;
-    return perms.includes(requiredPermission);
-};
-
-// Middleware Factory
-export const requireRole = (role: UserRole) => {
+export const requireRole = (requiredRole: UserRole) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        const userRole = req.headers['x-user-role'] as UserRole;
+        // Headers mock for now, but will be JWT based in production
+        const userRole = (req.headers['x-user-role'] as UserRole) || UserRole.VIEW_ONLY;
 
-        if (!userRole) {
-            res.status(401).json({ status: 'error', message: 'Unauthorized: No role provided' });
-            return;
+        const rolesHierarchy = [UserRole.VIEW_ONLY, UserRole.TRADER, UserRole.ADMIN, UserRole.SUPER_ADMIN];
+        const userLevel = rolesHierarchy.indexOf(userRole);
+        const requiredLevel = rolesHierarchy.indexOf(requiredRole);
+
+        if (userLevel < requiredLevel) {
+            return res.status(403).json({
+                status: 'error',
+                error: 'FORBIDDEN',
+                message: `Insufficient permissions. Required: ${requiredRole}`
+            });
         }
-
-        if (userRole === UserRole.SUPER_ADMIN) {
-            next();
-            return;
-        }
-
-        if (userRole !== role) {
-            res.status(403).json({ status: 'error', message: `Forbidden: Requires ${role}` });
-            return;
-        }
-
         next();
     };
 };
 
-export const requirePermission = (permission: Permission) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-        const userRole = req.headers['x-user-role'] as UserRole;
+export const requireBrokerConnection = () => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        const userId = req.headers['x-user-id'] as string;
 
-        if (!userRole) {
-            res.status(401).json({ status: 'error', message: 'Unauthorized: No role provided' });
-            return;
+        if (!userId) {
+            return res.status(401).json({ error: 'UNAUTHORIZED' });
         }
 
-        if (!hasPermission(userRole, permission)) {
-            res.status(403).json({ status: 'error', message: `Forbidden: Missing permission ${permission}` });
-            return;
-        }
+        try {
+            const result = await db.query(
+                `SELECT status FROM user_brokers WHERE user_id = $1`,
+                [userId]
+            );
 
-        next();
+            if (result.rows.length === 0 || result.rows[0].status !== 'ACTIVE') {
+                return res.status(403).json({
+                    status: 'error',
+                    error: 'BROKER_REQUIRED',
+                    message: 'Active broker connection required for this action.'
+                });
+            }
+            next();
+        } catch (e) {
+            console.error("Broker Check Error:", e);
+            return res.status(500).json({ error: 'INTERNAL_ERROR' });
+        }
     };
 };

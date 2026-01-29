@@ -10,6 +10,8 @@ interface User {
     email: string;
     name: string;
     status: UserStatus;
+    role: "SUPER_ADMIN" | "ADMIN" | "TRADER" | "VIEW_ONLY";
+    brokerConnected?: boolean;
 }
 
 interface AuthContextType {
@@ -17,7 +19,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (email: string, passwordInput?: string) => Promise<void>;
     logout: () => void;
-    checkStatus: () => void; // Force refresh status
+    checkStatus: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,22 +41,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         // Demo/Admin Mock Bypass for reliability during dev (Frontend-only fallback)
-        if (email === "demo@aegis.local" || email === "admin@aegis.local") {
+        if (email === "demo@aegis.local" || email === "admin@aegis.local" || email === "demo_pro_user@aegis.local") {
             await new Promise((resolve) => setTimeout(resolve, 500));
-            const newUser: User = email.includes("admin")
-                ? { id: "admin-user-01", email, name: "System Administrator", status: "ACTIVE" }
-                : { id: "demo-user-01", email, name: "SaaS Demo User", status: "ACTIVE" };
+
+            let newUser: User;
+            if (email.includes("admin")) {
+                newUser = { id: "admin-user-01", email, name: "System Administrator", status: "ACTIVE", role: "ADMIN" };
+            } else if (email.includes("pro")) {
+                newUser = { id: "demo-pro-01", email, name: "Pro Trader", status: "ACTIVE", role: "TRADER", brokerConnected: true };
+            } else {
+                newUser = { id: "demo-user-01", email, name: "SaaS Demo User", status: "ACTIVE", role: "VIEW_ONLY", brokerConnected: false };
+            }
 
             setUser(newUser);
             localStorage.setItem("aegis_user", JSON.stringify(newUser));
             setIsLoading(false);
-            router.push(email.includes("admin") ? "/dashboard" : "/dashboard");
+            router.push("/dashboard");
             return;
         }
 
         try {
             // Real API Call
-            // Use provided password or a default if coming from a flow that didn't capture it (less secure but handles legacy flows)
             const password = passwordInput || "Pass123!@#";
 
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4100'}/api/v1/auth/login`, {
@@ -72,7 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: data.data.id,
                 email: data.data.email,
                 name: data.data.name,
-                status: data.data.status as UserStatus // Cast to enum
+                status: data.data.status as UserStatus,
+                role: data.data.role || "VIEW_ONLY",
+                brokerConnected: data.data.brokerConnected || false
             };
 
             setUser(newUser);
@@ -82,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Routing Logic
             console.log("LOGIN REDIRECT Check:", newUser.status);
             if (newUser.status === "ACTIVE") router.push("/dashboard");
-            else if (newUser.status === "PAYMENT_UNDER_REVIEW" || newUser.status === "PENDING_APPROVAL") router.push("/payment-status"); // Map PENDING_APPROVAL
+            else if (newUser.status === "PAYMENT_UNDER_REVIEW" || newUser.status === "PENDING_APPROVAL") router.push("/payment-status");
             else if (newUser.status === "PENDING_PAYMENT") router.push("/payment");
             else router.push("/");
 
@@ -99,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push("/");
     };
 
-    // Helper to refresh status (called by payment page)
+    // Helper to refresh status
     const checkStatus = async () => {
         if (!user) return;
 
@@ -114,7 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     id: data.data.id,
                     email: data.data.email,
                     name: data.data.name,
-                    status: data.data.status
+                    status: data.data.status,
+                    role: data.data.role || "VIEW_ONLY",
+                    brokerConnected: data.data.brokerConnected || false
                 };
                 setUser(updatedUser);
                 localStorage.setItem("aegis_user", JSON.stringify(updatedUser));

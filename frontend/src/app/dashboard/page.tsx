@@ -195,12 +195,20 @@ export default function DashboardPage() {
                                     <Filter className="w-3 h-3 mr-2" />
                                     Filter
                                 </Button>
-                                <Button
-                                    onClick={handleExecutionRequest}
-                                    disabled={isDeploying}
-                                    className="h-10 bg-primary text-white hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest px-6 rounded-lg shadow-lg shadow-primary/20">
-                                    {isDeploying ? 'Deploying...' : 'Deploy Strategy'}
-                                </Button>
+                                {user?.role === 'TRADER' && user?.brokerConnected ? (
+                                    <Button
+                                        onClick={handleExecutionRequest}
+                                        disabled={isDeploying}
+                                        className="h-10 bg-primary text-white hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest px-6 rounded-lg shadow-lg shadow-primary/20">
+                                        {isDeploying ? 'Deploying...' : 'Deploy Strategy'}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        disabled
+                                        className="h-10 bg-white/5 text-zinc-500 font-mono text-[10px] uppercase tracking-widest px-6 rounded-lg cursor-not-allowed">
+                                        {user?.role !== 'TRADER' ? 'Plan Upgrade Required' : 'Connect Broker to Trade'}
+                                    </Button>
+                                )}
                             </div>
                         </div>
 
