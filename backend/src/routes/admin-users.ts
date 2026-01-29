@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import { SandboxManager } from '../core/sandbox';
+import { OSClient } from '../core/os-client';
 
 const router = Router();
 
@@ -58,7 +59,7 @@ router.post('/:id/status', verifyAdmin, async (req: Request, res: Response) => {
 
         // If blocking or pausing, we might want to kill sandbox too
         if (status !== 'ACTIVE') {
-            await SandboxManager.forceStop(id);
+            await OSClient.getInstance().triggerPanic(id, `Admin User Status Change: ${status}`);
         }
 
         res.json({ status: "success", message: `User ${id} status updated to ${status}` });
@@ -71,7 +72,7 @@ router.post('/:id/status', verifyAdmin, async (req: Request, res: Response) => {
 router.post('/:id/kill', verifyAdmin, async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
-        await SandboxManager.forceStop(id);
+        await OSClient.getInstance().triggerPanic(id, "Admin Manual Kill");
         res.json({ status: "success", message: `Execution killed for user ${id}` });
     } catch (e: any) {
         res.status(500).json({ status: "error", message: e.message });

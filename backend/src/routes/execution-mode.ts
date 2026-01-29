@@ -65,8 +65,7 @@ router.post('/downgrade-sandbox/:userId', async (req, res) => {
         );
 
         // Also disable auto-trading in memory to be safe
-        const sandbox = sandboxManager.getSandbox(userId);
-        sandbox.disableAutoTrading();
+        // sandbox.disableAutoTrading() - Removed (Stateless Execution)
 
         res.json({ status: 'success', message: `User ${userId} downgraded to SANDBOX execution mode.` });
     } catch (e: any) {

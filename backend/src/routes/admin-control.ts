@@ -21,9 +21,6 @@ router.post('/kill-switch', requireRole(UserRole.SUPER_ADMIN), async (req: Reque
         GLOBAL_KILL_SWITCH = active;
 
         if (active) {
-            // 1. Force stop all SaaS Sandboxes (Metadata level)
-            await SandboxManager.stopAll();
-
             // 2. Trigger OS Panic (Physical level)
             const osResult = await OSClient.getInstance().triggerPanic(userId, "Admin Dashboard Manual Panic");
 
@@ -41,7 +38,7 @@ router.post('/kill-switch', requireRole(UserRole.SUPER_ADMIN), async (req: Reque
         res.json({
             status: "success",
             kill_switch: GLOBAL_KILL_SWITCH,
-            message: active ? "SYSTEM HALTED. OS & SaaS stopped." : "System resumed. Brokers must be manually reconnected."
+            message: active ? "SYSTEM HALTED. OS Panic Triggered." : "System resumed. Brokers must be manually reconnected."
         });
     } catch (e: any) {
         res.status(500).json({ status: "error", message: e.message });
@@ -53,7 +50,7 @@ router.get('/system/status', requireRole(UserRole.ADMIN), async (req: Request, r
     res.json({
         status: "success",
         kill_switch: GLOBAL_KILL_SWITCH,
-        active_sandboxes: SandboxManager.getActiveCount(),
+        active_sandboxes: 0, // Deprecated metric
         uptime: process.uptime()
     });
 });
