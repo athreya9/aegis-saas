@@ -29,6 +29,7 @@ import { BrokerStatusCard } from "@/components/broker/broker-status-card"
 import { BrokerConnectModal } from "@/components/broker/broker-connect-modal"
 import { RiskControlCard } from "@/components/dashboard/risk-control-card"
 import { RiskDisclaimer } from "@/components/dashboard/risk-disclaimer"
+import { TransparencyBar } from "@/components/dashboard/transparency-bar"
 import React, { useState, useEffect } from "react"
 
 export default function DashboardPage() {
@@ -150,6 +151,9 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Transparency Layer */}
+                <TransparencyBar />
 
                 {/* Subscription Warning */}
                 {user?.status !== "ACTIVE" && (

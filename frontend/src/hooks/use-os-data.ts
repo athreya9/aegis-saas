@@ -15,10 +15,19 @@ interface OSMetrics {
 interface OSStatus {
     online: boolean;
     last_updated: number;
+    transparency?: {
+        lastHeartbeat: number | null;
+        lastDecision: string | null;
+        lastRejection: string | null;
+        confidenceScore: number | null;
+        riskUsed: number | null;
+        coreStatus: 'LIVE' | 'WAIT_FOR_AUTH' | 'HALTED' | 'CORE OFFLINE';
+    };
     data: {
         engine_state: 'RUNNING' | 'STOPPED' | 'ERROR';
         market_status: 'OPEN' | 'CLOSED';
         armed: boolean;
+        status?: string; // Legacy support
     };
 }
 

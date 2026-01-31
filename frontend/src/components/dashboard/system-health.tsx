@@ -7,6 +7,8 @@ export function SystemHealthCard() {
     const { status } = useOSData();
 
     const isOnline = status?.online;
+    const transparency = status?.transparency;
+    const coreStatus = transparency?.coreStatus || 'CORE OFFLINE';
     const engineState = status?.data?.engine_state || 'UNKNOWN';
     const marketStatus = status?.data?.market_status || 'CLOSED';
 
@@ -14,8 +16,8 @@ export function SystemHealthCard() {
     const stats = [
         {
             label: "Execution Engine",
-            value: isOnline ? engineState : "OFFLINE",
-            status: engineState === 'RUNNING' ? "optimal" : "warning",
+            value: coreStatus,
+            status: coreStatus === 'LIVE' ? "optimal" : (coreStatus === 'CORE OFFLINE' ? "critical" : "warning"),
             icon: Zap
         },
         {
@@ -43,10 +45,10 @@ export function SystemHealthCard() {
             <div className="flex items-center justify-between mb-8">
                 <h3 className="text-sm font-bold text-white tracking-tight">System Health</h3>
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
-                        {isOnline ? 'LIVE KERNEL' : 'SEARCHING...'}
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${coreStatus === 'CORE OFFLINE' ? 'text-red-500' : 'text-emerald-500'}`}>
+                        {coreStatus}
                     </span>
-                    <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                    <div className={`w-2 h-2 rounded-full ${coreStatus === 'LIVE' ? 'bg-emerald-500 animate-pulse' : (coreStatus === 'CORE OFFLINE' ? 'bg-red-500' : 'bg-amber-500')}`} />
                 </div>
             </div>
 
@@ -60,7 +62,7 @@ export function SystemHealthCard() {
                             </span>
                         </div>
                         <p className="financial-label opacity-60 mb-1">{stat.label}</p>
-                        <p className={`text-sm font-black font-mono italic ${stat.value === 'OFFLINE' ? 'text-red-500' : 'text-white'}`}>
+                        <p className={`text-sm font-black font-mono italic ${stat.value === 'CORE OFFLINE' || stat.value === 'OFFLINE' ? 'text-red-500' : 'text-white'}`}>
                             {stat.value}
                         </p>
                     </div>

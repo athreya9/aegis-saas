@@ -15,9 +15,11 @@ const injectSource = (data: any) => {
 
 router.get('/status', (req, res) => {
     const data = client.getStatus();
+    const transparency = client.getTransparency();
     res.json(injectSource({
         online: client.isOnline(),
         last_updated: client.getLastUpdated(),
+        transparency,
         data
     }));
 });
