@@ -9,8 +9,9 @@ dotenv.config();
  * It connects to the Core VPS Redis instance.
  */
 
-const REDIS_HOST = process.env.REDIS_HOST || process.env.VPS_IP || '127.0.0.1';
-const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379');
+const CORE_REDIS_URL = process.env.CORE_REDIS_URL;
+const REDIS_HOST = CORE_REDIS_URL ? new URL(CORE_REDIS_URL).hostname : (process.env.REDIS_HOST || process.env.VPS_IP || '127.0.0.1');
+const REDIS_PORT = CORE_REDIS_URL ? parseInt(new URL(CORE_REDIS_URL).port || '6379') : parseInt(process.env.REDIS_PORT || '6379');
 
 class RedisReadOnlyClient {
     private static instance: RedisReadOnlyClient;
