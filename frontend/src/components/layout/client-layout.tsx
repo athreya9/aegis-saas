@@ -14,6 +14,7 @@ interface ClientLayoutProps {
     children: React.ReactNode
 }
 
+import { GlobalOfflineBanner } from "@/components/layout/global-offline-banner"
 import { Footer } from "@/components/layout/footer"
 
 export function ClientLayout({ children }: ClientLayoutProps) {
@@ -25,6 +26,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
     return (
         <>
+            <GlobalOfflineBanner />
             {/* Global Navbar - Hidden on Dashboard and Auth pages */}
             {!isDashboard && !isAuthPage && <Navbar />}
 

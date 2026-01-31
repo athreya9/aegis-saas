@@ -127,41 +127,5 @@ router.get('/all-status', async (req: any, res) => {
     });
 });
 
-// POST /api/v1/control/kill-switch
-router.post('/kill-switch', async (req: any, res) => {
-    const { reason } = req.body;
-    console.warn(`[Control] KILL SWITCH REQUESTED by ${req.user.id}`);
-
-    // Call OS Client Panic
-    const result = await OSClient.getInstance().triggerPanic(
-        req.user.id,
-        reason || "SAAS_ADMIN_MANUAL_KILL"
-    );
-
-    if (result.success) {
-        // Update DB to safe mode
-        try {
-            await db.query(
-                `UPDATE broker_credentials 
-             SET execution_mode = 'SANDBOX', mode_updated_at = CURRENT_TIMESTAMP 
-             WHERE user_id = $1`,
-                [req.user.id]
-            );
-        } catch (e) {
-            console.error("Kill Switch DB Revert Fail:", e);
-        }
-
-        res.json({
-            status: "success",
-            message: "KILL SWITCH ACTIVATED. System Halted."
-        });
-    } else {
-        res.status(500).json({
-            status: "error",
-            message: "Failed to trigger OS Panic",
-            details: result.message
-        });
-    }
-});
-
+// kill-switch REMOVED - SaaS is Read-Only
 export default router;

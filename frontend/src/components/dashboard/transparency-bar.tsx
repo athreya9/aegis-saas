@@ -14,8 +14,8 @@ export function TransparencyBar() {
 
     return (
         <div className={`vercel-card p-4 transition-all duration-500 border-l-4 ${isOffline ? 'border-l-red-500 bg-red-500/5' :
-                isWaitAuth ? 'border-l-amber-500 bg-amber-500/5' :
-                    'border-l-emerald-500 bg-emerald-500/5'
+            isWaitAuth ? 'border-l-amber-500 bg-amber-500/5' :
+                'border-l-emerald-500 bg-emerald-500/5'
             }`}>
             <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
                 {/* Status Indicator */}
@@ -60,7 +60,7 @@ export function TransparencyBar() {
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Risk Used</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Risk Aggression</p>
                         <p className="text-[11px] font-mono font-bold text-white">
                             ₹{transparency.riskUsed?.toLocaleString() || '0'}
                         </p>
@@ -85,7 +85,7 @@ export function TransparencyBar() {
                     <Activity size={12} className={isOffline ? 'text-red-500' : 'text-amber-500'} />
                     <p className={`text-[10px] font-medium ${isOffline ? 'text-red-400' : 'text-amber-400'}`}>
                         {isOffline
-                            ? "Core OS is unreachable or halted. Transparency feed is showing last known state."
+                            ? "CORE SYSTEM OFFLINE - Maintenance in Progress."
                             : "Core OS is waiting for brokerage authentication. Execution is paused."}
                     </p>
                 </div>
