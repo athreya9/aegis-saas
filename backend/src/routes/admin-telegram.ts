@@ -7,60 +7,29 @@ const client = OSClient.getInstance();
 
 // GET /api/v1/admin/telegram/status
 router.get('/status', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
-    const status = await client.getTelegramStatus();
+    // SaaS is Read-Only. Direct OS Telegram integration is handled by Core.
+    // For now, we return a conceptual status or fetch from a mirror key in Redis if available.
     res.json({
-        ...status,
+        enabled: true,
+        status: 'MIRROR_ONLY',
         serviced_by: 'SAAS_BACKEND_PROXY'
     });
 });
 
 // POST /api/v1/admin/telegram/enable
 router.post('/enable', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
-    const userId = req.headers['x-user-id'] as string || 'admin_123';
-    // Audit Spec: { action, state, user_id, ip, timestamp }
-    const auditLog = {
-        action: 'telegram_toggle',
-        state: 'enabled',
-        user_id: userId,
-        ip: req.ip || 'unknown',
-        timestamp: new Date().toISOString()
-    };
-    console.log('[AUDIT]', JSON.stringify(auditLog));
-
-    // Call OS
-    const result = await client.toggleTelegram(true, userId, "Manual Enable via Admin UI");
-    if (result.success) {
-        res.json({ status: 'success', message: 'Telegram Enabled' });
-    } else {
-        res.status(502).json({ status: 'error', message: result.message });
-    }
+    res.status(403).json({ status: 'error', message: 'Read-only access: Control commands are not permitted from SaaS.' });
 });
 
 // POST /api/v1/admin/telegram/disable
 router.post('/disable', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
-    const userId = req.headers['x-user-id'] as string || 'admin_123';
-
-    const auditLog = {
-        action: 'telegram_toggle',
-        state: 'disabled',
-        user_id: userId,
-        ip: req.ip || 'unknown',
-        timestamp: new Date().toISOString()
-    };
-    console.log('[AUDIT]', JSON.stringify(auditLog));
-
-    const result = await client.toggleTelegram(false, userId, "Manual Disable via Admin UI");
-    if (result.success) {
-        res.json({ status: 'success', message: 'Telegram Disabled' });
-    } else {
-        res.status(502).json({ status: 'error', message: result.message });
-    }
+    res.status(403).json({ status: 'error', message: 'Read-only access: Control commands are not permitted from SaaS.' });
 });
 
 // GET /api/v1/admin/telegram/channels
 router.get('/channels', requireRole(UserRole.ADMIN), async (req: Request, res: Response) => {
-    const data = await client.getTelegramChannels();
-    res.json(data);
+    // Return empty or cached config. Direct OS fetch is disabled in read-only mode.
+    res.json({ channels: [], message: 'Configuration is read-only from Core OS.' });
 });
 
 // POST /api/v1/admin/telegram/channels/update

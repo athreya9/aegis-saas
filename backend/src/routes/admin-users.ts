@@ -57,26 +57,16 @@ router.post('/:id/status', verifyAdmin, async (req: Request, res: Response) => {
 
         await db.query('UPDATE users SET status = $1 WHERE user_id = $2', [status, id]);
 
-        // If blocking or pausing, we might want to kill sandbox too
-        if (status !== 'ACTIVE') {
-            await OSClient.getInstance().triggerPanic(id, `Admin User Status Change: ${status}`);
-        }
-
-        res.json({ status: "success", message: `User ${id} status updated to ${status}` });
+        // Read-only refinement: Command emission to Core OS is prohibited from SaaS.
+        res.json({ status: "success", message: `User ${id} status updated to ${status}. (Core notification skipped in mirror mode)` });
     } catch (e: any) {
         res.status(500).json({ status: "error", message: e.message });
     }
 });
 
-// POST /api/v1/admin/users/:id/kill
+// POST /api/v1/admin/users/:id/kill [REMOVED]
 router.post('/:id/kill', verifyAdmin, async (req: Request, res: Response) => {
-    try {
-        const id = req.params.id as string;
-        await OSClient.getInstance().triggerPanic(id, "Admin Manual Kill");
-        res.json({ status: "success", message: `Execution killed for user ${id}` });
-    } catch (e: any) {
-        res.status(500).json({ status: "error", message: e.message });
-    }
+    res.status(403).json({ status: "error", message: "Manual kill commands are disabled in read-only mode." });
 });
 
 
