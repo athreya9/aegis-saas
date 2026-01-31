@@ -80,10 +80,23 @@ export class OSClient {
 
             const isOnline = !!status;
             const now = Date.now();
-            const lastHb = heartbeat ? parseInt(heartbeat) : null;
 
             // Heartbeat Logic: If older than 5 seconds, CORE OFFLINE
-            const isHbStale = lastHb ? (now - lastHb > 5000) : true;
+            let lastHb: number | null = null;
+            if (heartbeat) {
+                try {
+                    if (heartbeat.startsWith('{')) {
+                        const hbJson = JSON.parse(heartbeat);
+                        lastHb = new Date(hbJson.timestamp).getTime();
+                    } else {
+                        lastHb = parseInt(heartbeat);
+                    }
+                } catch (e) {
+                    console.warn('[OSClient] Heartbeat parse error');
+                }
+            }
+
+            const isHbStale = lastHb ? (Date.now() - lastHb > 5000) : true;
 
             // Resolve Core Status
             let coreStatus: any = 'CORE OFFLINE';
